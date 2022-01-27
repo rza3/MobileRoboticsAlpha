@@ -18,6 +18,11 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 cs_add_executable(lidar_alarm src/lidar_alarm.cpp)
 #cs_add_executable(lidar_alarm2 src/lidar_alarm2.cpp)
 # target_link_library(example my_lib)
+# add_executable(heading_service src/heading_service.cpp)
+# add_executable(heading_client src/heading_client.cpp)
+
+##target_link_libraries(heading_service ${catkin_LIBRARIES})
+##target_link_libraries(heading_client ${catkin_LIBRARIES})
 
 cs_install()
 cs_export()
