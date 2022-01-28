@@ -72,9 +72,9 @@ lidar_dist_publisher_.publish(lidar_dist_msg);
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "lidar_alarm");
 	ros::NodeHandle nh;
-	ros::Publisher pub = nh.advertise<std_msgs::Bool>("lidar_alarm", 1);
+	ros::Publisher pub = nh.advertise<std_msgs::Bool>("left_lidar_alarm", 1);
 	lidar_alarm_publisher_ = pub;
-	ros::Publisher pub2 = hg.advertise<std_msgs::Float32>("lidar_dist", 1);
+	ros::Publisher pub2 = hg.advertise<std_msgs::Float32>("left_lidar_dist", 1);
 	lidar_dist_publisher_ = pub2;
 	ros::Subscriber lidar_subscriber = nh.subscribe("robot-/laser_0", 1, laserCallback);
 	ros::spin();
