@@ -1,0 +1,9 @@
+<launch>
+	<node pkg="stdr_wall_following" name="lidar_alarm" type="lidar_alarm" output="screen"/>
+
+	<node pkg="stdr_wall_following" name="lidar_alarm2" type="lidar_alarm2" output="screen"/>
+
+	<node pkg="stdr_wall_following" name="heading_service" type="heading_service" output="screen"/>
+	
+	<node pkg="stdr_wall_following" name="coordinator" type="coordinator" output="screen"/>
+</launch>
