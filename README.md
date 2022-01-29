@@ -22,6 +22,6 @@ The controller code monitors the `lidar_alarm` topic to prevent running into obs
 * CMakeLists.txt
     * This file is the CMakeLists file for this package.
  * README.md
-    * This file is the README for this package. It describes the package and includes some discussion elements.
+    * This file is the README for this package. It describes the package.
  * package.xml
     * This file is the package.xml file for this package.
