@@ -41,7 +41,9 @@ Implementing this in a physical system would be an appropriate next step. Many o
       * This node is the left box inspector. It checks if there is a wall to the left of the robot.
  * launch/
     * stdr_wall_following_robot.launch
-       * This file launches all the nodes (lidar_alarm, lidar_alarm2, heading_service, and coordinator. It does not take any parameters.
+       * This file launches all the nodes (lidar_alarm, lidar_alarm2, heading_service, and coordinator). It does not take any parameters.
+    * stdr_north_facing_robot.launch
+       * This file launches stdr_robot, stdr_server_node, static_transform_publisher, and stdr_gui. It does not take paramters.
  * srv/
     * DoubleSrv.srv
        * This file is the .srv file for the rotation service.  
