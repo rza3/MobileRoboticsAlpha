@@ -13,11 +13,11 @@ double angle_max_ = 0.0;
 double angle_increment_ = 0.0;
 double range_min_ = 0.0;
 double range_max_ = 0.0;
-bool laser_alarm_ = false;
-double tolerance = 0.2;
+bool laser_alarm_ = true;
+double tolerance = 0.5;
 double radius = 0.1;
-double stopping_distance = 0.3;
-double detect_length = stopping_distance + tolerance;
+double stopping_distance = 1;
+double detect_length = radius + stopping_distance;
 double detect_width = radius + tolerance;
 int num_rays;
 
@@ -31,37 +31,32 @@ void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
 		angle_increment_ = laser_scan.angle_increment;
 		range_min_ = laser_scan.range_min;
 		range_max_ = laser_scan.range_max;
-		ping_index_ = (int) ((-M_PI/2 - angle_min_) / angle_increment_);
+		ping_index_ = (int) ((M_PI/2 - angle_min_) / angle_increment_);
 		//ROS_INFO("LIDAR setup: ping_index = %d" , ping_index_);
 		}
-	
-	num_rays = atan(detect_width/detect_length)/angle_increment_;
-	//ROS_INFO("Number of rays is %i:", num_rays);
-	laser_alarm_ = false;
-
-	for (int index = 0; index < num_rays; index++) {
-		ping_dist_to_left_ = laser_scan.ranges[ping_index_+ index];
-		//ROS_INFO("ping dist to left = %f", ping_dist_to_left_);
-		if (ping_dist_to_left_ < detect_length) {
-			//ROS_WARN("DANGER, WILL ROBINSON!");
-			//ROS_INFO("Pos  %i", index);
+		num_rays = 100;
+		int num_near = 0;
 		laser_alarm_ = true;
+		for (int index = 0; index<num_rays; index ++){
+			ping_dist_to_left_ = laser_scan.ranges[ping_index_ + index];
+			if(ping_dist_to_left_>detect_length){
+				ROS_WARN("Away from wall");
+			}
+			else{
+				ROS_WARN("Next to wall");
+				num_near = num_near + 1;
+			}
+			ping_dist_to_left_ = laser_scan.ranges[ping_index_ - index];
+			if(ping_dist_to_left_>detect_length){
+				ROS_WARN("Away from wall");
+			}
+			else{
+				ROS_WARN("Next to wall");
+				num_near = num_near + 1;
+			}
 		}
-		else{
-		//laser_alarm_ = false;
-		}
-		ping_dist_to_left_ = laser_scan.ranges[ping_index_- index];
-		//ROS_INFO("ping dist to left = %f", ping_dist_to_left_);
-			if (ping_dist_to_left_ < detect_length) {
-			//ROS_WARN("DANGER, WILL ROBINSON!");
-			//ROS_INFO("Neg side %i", index);
-		laser_alarm_ = true;
-		}
-		else{
-		//laser_alarm_ = false;
-		}
-		if(index == 0)
-			ROS_INFO("Index 0");
+	if(num_near<0.4*num_rays){
+		laser_alarm_ = false;
 	}
 
 	std_msgs::Bool lidar_alarm_msg;
@@ -83,3 +78,4 @@ int main(int argc, char **argv) {
 	ros::spin();
 	return 0;
 }
+
