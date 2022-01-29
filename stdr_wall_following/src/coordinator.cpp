@@ -53,15 +53,28 @@ int main(int argc, char **argv){
     //start sending some zero-velocity commands, just to warm up communications with STDR
     for (int i=0;i<10;i++) {
       twist_commander.publish(twist_cmd);
+      ros::spinOnce();
+      loop_timer.sleep();
+    }
+    heading_srv.request.vec_of_doubles.resize(1);
+            heading_srv.request.vec_of_doubles[0]=desired_heading;
+            client.call(heading_srv); //command rotation service to rotate CW 90 degrees once
+    
+    for (int i=0;i<10;i++) {
+      twist_commander.publish(twist_cmd);
+      ros::spinOnce();
       loop_timer.sleep();
     }
 
     twist_cmd.linear.x=speed; //command to move forward
+    
     while(ros::ok()){
-        ros::spinOnce();
-        loop_timer.sleep();
+        
         while(!g_lidar_alarm_front && g_lidar_alarm_left) { //keep moving forward until either the front alarm is detected or the left alarm is no longer detected
+            twist_cmd.linear.x=speed;
             twist_commander.publish(twist_cmd);
+            ROS_INFO("x speed is [%f]:", twist_cmd.linear.x);
+            ROS_INFO("speed should be [%f]:", speed);
             timer+=sample_dt;
             ros::spinOnce();
             loop_timer.sleep();
@@ -77,6 +90,7 @@ int main(int argc, char **argv){
         timer=0.0;
         if(g_lidar_alarm_front){
             while(g_lidar_alarm_front){ //repeat until alarm front no longer detects a wall
+                ROS_ERROR("IN FRONT!!");
                 desired_heading -= M_PI/2;
                 heading_srv.request.vec_of_doubles.resize(1); //command rotation service to rotate CW 90 degrees
                 heading_srv.request.vec_of_doubles[0]=desired_heading;
@@ -86,7 +100,7 @@ int main(int argc, char **argv){
                 loop_timer.sleep();
             }
         } else if(!g_lidar_alarm_left){
-            desired_heading -= M_PI/2;
+            desired_heading += M_PI/2;
             heading_srv.request.vec_of_doubles.resize(1);
             heading_srv.request.vec_of_doubles[0]=desired_heading;
             client.call(heading_srv); //command rotation service to rotate CW 90 degrees once
