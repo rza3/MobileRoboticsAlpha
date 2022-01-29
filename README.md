@@ -14,4 +14,8 @@ Start up the STDR simulator:
 Start the lidar alarm node:
  `rosrun lidar_alarm lidar_alarm`
 The controller code monitors the `lidar_alarm` topic to prevent running into obstacles (head on or from the side).
-    
+ 
+ ## Directory Structure
+ * src/
+      * lidar_alarm.cpp
+         * This file contains the code for the front box inspector.
