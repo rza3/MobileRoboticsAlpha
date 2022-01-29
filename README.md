@@ -19,3 +19,9 @@ The controller code monitors the `lidar_alarm` topic to prevent running into obs
  * src/
       * lidar_alarm.cpp
          * This file contains the code for the front box inspector.
+* CMakeLists.txt
+    * This file is the CMakeLists file for this package.
+ * README.md
+    * This file is the README for this package. It describes the package and includes some discussion elements.
+ * package.xml
+    * This file is the package.xml file for this package.
