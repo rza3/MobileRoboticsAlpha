@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle n; // two lines to create a publisher object that can talk to ROS
     g_twist_publisher = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     ros::Subscriber des_state_subscriber = n.subscribe("/desState",1,desStateCallback); 
-    ros::Subscriber curr_state_subscriber = n.subscribe("/currState",1,currStateCallback); 
+    ros::Subscriber curr_state_subscriber = n.subscribe("/current_state",1,currStateCallback); 
     
     /*ros::ServiceClient client = n.ServiceClient<mode_srv::ModeSrv>("mode_determining_service");
     mode_srv::ModeSrv mode_service;
