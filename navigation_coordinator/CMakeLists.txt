@@ -3,6 +3,8 @@ project(navigation_coordinator)
 
 find_package(catkin_simple REQUIRED)
 
+find_package(des_state_publisher_service REQUIRED)
+
 #uncomment next line to use OpenCV library
 #find_package(OpenCV REQUIRED)
 

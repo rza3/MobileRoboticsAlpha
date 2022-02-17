@@ -12,27 +12,32 @@ int main(int argc, char **argv){
 
     //Values for all the goal positions
     //These have to be manually modified for now
-    double numGoals = 6;
+    int numGoals = 6;
     double x[] = {0.0, 0.5, 0, 0.25, 0.0, 1.0};
     double y[] = {0.0, 0.5, 0, 0.25, 0.0, 1.0};
     double psi[] = {0.0, 0.0, 0.5, 0.0, -0.5, 0.0};
+    int mode[] = {0, 0, 1, 0, 1, 0};
 
-    double sample_dt = 0.01;
+    double sample_dt = 0.02;
 
+    
+
+    //Is this necessary this time?
+    //ros::Rate loop_timer(1/sample_dt);
+
+    //Wait until the service is advertized and available before attempting to send goal positions.
+    client.waitForExistence();
+    
     pose_srv.request.x = x[0];
     pose_srv.request.y = y[0];
     pose_srv.request.psi = psi[0];
-
-    //Is this necessary this time?
-    ros::Rate loop_timer(1/sample_dt);
-
-    //Wait until the service is advertized and available before attempting to send goal positions.
-    client.waitForExistance();
+    pose_srv.request.mode = mode[0];
     
     for(int i = 1; i < numGoals;){
         pose_srv.request.x = x[i];
         pose_srv.request.y = y[i];
         pose_srv.request.psi = psi[i];
+        pose_srv.request.mode = mode[i];
         
         if (client.call(pose_srv) && ros::ok()){
             if(pose_srv.response.alarm){
