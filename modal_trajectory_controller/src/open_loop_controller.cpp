@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
+#include <std_msgs/Bool.h>
 
 /*#include "mode_srv/ModeSrv.h"*/
 
@@ -19,6 +20,8 @@ double K_TRIP_DIST = 0.0;
 double K_PHI = 0.0;
 double K_DISP = 0.0;
 double MAX_OMEGA = 0.5; // 0.5 rad/sec corresponds to 1.5 rad in 3 sec so 90 degrees in about 3 seconds
+//int g_des_mode = 5;
+
 
 //utility fnc to compute min dang, accounting for periodicity
 double min_dang(double dang) {
@@ -61,6 +64,17 @@ void currStateCallback(const nav_msgs::Odometry& curr_state){
     g_curr_y = curr_state.pose.pose.position.y;
     g_curr_phi = convertPlanarQuat2Phi(curr_state.pose.pose.orientation);
 }
+/*
+void desMode1Callback(const std_msgs::Bool& des_mode1) {
+    if(des_mode1.data)
+       g_des_mode = 1;
+}
+void desMode0Callback(const std_msgs::Bool& des_mode0) {
+    if(des_mode0.data)
+       g_des_mode = 0;
+}
+*/
+
 void closed_loop_control(){
     double controller_speed;
     double controller_omega;
@@ -112,9 +126,14 @@ void closed_loop_control(){
     
     controller_omega = MAX_OMEGA*sat(controller_omega/MAX_OMEGA); // saturate omega command at specified limits
     
+    //g_pub_twist.linear.x = 0.0;
+    //g_pub_twist.angular.z = 0.0;
     // send out our very clever speed/spin commands:
-    g_pub_twist.linear.x = controller_speed;
-    g_pub_twist.angular.z = controller_omega;
+    //if(g_des_mode == 1)
+        g_pub_twist.angular.z = controller_omega;
+   // else if(g_des_mode == 0)
+        g_pub_twist.linear.x = controller_speed;
+    
     //g_pub_twist.header.stamp = ros::Time::now(); // look up the time and put it in the header 
 }
 
@@ -124,7 +143,8 @@ int main(int argc, char **argv) {
     g_twist_publisher = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     ros::Subscriber des_state_subscriber = n.subscribe("/desState",1,desStateCallback); 
     ros::Subscriber curr_state_subscriber = n.subscribe("/current_state",1,currStateCallback); 
-    
+    //ros::Subscriber mode_1_subscriber = n.subscribe("/des_mode1",1,desMode1Callback); 
+    //ros::Subscriber mode_0_subscriber = n.subscribe("/des_mode0",1,desMode0Callback); 
     /*ros::ServiceClient client = n.ServiceClient<mode_srv::ModeSrv>("mode_determining_service");
     mode_srv::ModeSrv mode_service;
     client.call(mode_service);
@@ -138,7 +158,11 @@ int main(int argc, char **argv) {
     while(ros::ok()){
         ros::spinOnce();
         closed_loop_control();
-        g_twist_publisher.publish(g_pub_twist); 
+        g_twist_publisher.publish(g_pub_twist);
+        if(g_des_vel - g_pub_twist.linear.x != 0)
+            ROS_ERROR("x error of %f",g_des_vel - g_pub_twist.linear.x);
+        if(g_des_omega - g_pub_twist.angular.z != 0)
+            ROS_ERROR("vel error of %f",g_des_omega - g_pub_twist.angular.z );
     }
 }
 

@@ -12,11 +12,11 @@ int main(int argc, char **argv){
 
     //Values for all the goal positions
     //These have to be manually modified for now
-    int numGoals = 6;
-    double x[] = {0.0, 0.5, 0, 0.25, 0.0, 1.0};
-    double y[] = {0.0, 0.5, 0, 0.25, 0.0, 1.0};
-    double psi[] = {0.0, 0.0, 0.5, 0.0, -0.5, 0.0};
-    int mode[] = {0, 0, 1, 0, 1, 0};
+    int numGoals = 7;
+    double x[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
+    double y[] = {0.0, 1.0, -1.0, 1.0, -1.0, 1.0, 0.0} ;
+    double psi[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    int mode[] = {0, 0, 0, 0, 0, 0, 1};
 
     double sample_dt = 0.02;
 
@@ -34,11 +34,13 @@ int main(int argc, char **argv){
     pose_srv.request.mode = mode[0];
     
     for(int i = 1; i < numGoals;){
+        ROS_INFO("Reached inside for loop");
         pose_srv.request.x = x[i];
         pose_srv.request.y = y[i];
         pose_srv.request.psi = psi[i];
         pose_srv.request.mode = mode[i];
-        
+        ROS_INFO("i is %i",i);
+        //i++;
         if (client.call(pose_srv) && ros::ok()){
             if(pose_srv.response.alarm){
                 ROS_INFO("LIDAR Alarm detected!");
