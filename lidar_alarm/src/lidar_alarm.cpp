@@ -15,8 +15,8 @@ double angle_increment_=0.0;
 double range_min_ = 0.0;
 double range_max_ = 0.0;
 bool laser_alarm_=false;
-double tolerance = 0.2; // can be tuned
-double radius = 0.1;  // can be tuned
+double tolerance = 0.15; // can be tuned
+double radius = 0.05;  // can be tuned
 double stopping_distance = 0.3; //can be tuned
 double detect_length = stopping_distance + tolerance; //replaced MIN_SAFE_DISTANCE with this
 double detect_width = radius + tolerance;
@@ -46,26 +46,24 @@ void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
    //ROS_INFO("Number of rays is %i:", num_rays);
    laser_alarm_ = false;
    for (int index = 0; index<num_rays; index++){
-   	ping_dist_in_front_ = laser_scan.ranges[ping_index_+ index];
-   	//ROS_INFO("ping dist in front = %f",ping_dist_in_front_);
-        if (ping_dist_in_front_<detect_length) {
-        	//ROS_WARN("DANGER, WILL ROBINSON!!");
-        	//ROS_INFO("Pos side %i", index);
-       	laser_alarm_=true;
-   	}
-   	else {
-       	//laser_alarm_=false;
-   	}
+       ping_dist_in_front_ = laser_scan.ranges[ping_index_+ index];
+       //ROS_INFO("ping dist in front = %f",ping_dist_in_front_);
+       if (ping_dist_in_front_<detect_length) {
+           //ROS_WARN("DANGER, WILL ROBINSON!!");
+           //ROS_INFO("Pos side %i", index);
+           laser_alarm_=true;
+        } else {
+       	    //laser_alarm_=false;
+   	    }
    	ping_dist_in_front_ = laser_scan.ranges[ping_index_- index];
    	//ROS_INFO("ping dist in front = %f",ping_dist_in_front_);
         if (ping_dist_in_front_<detect_length) {
         	//ROS_WARN("DANGER, WILL ROBINSON!!");
         	//ROS_INFO("Neg side %i", index);
-       	laser_alarm_=true;
-   	}
-   	else {
-       	//laser_alarm_=false;
-   	}
+       	    laser_alarm_=true;
+   	    } else {
+       	    //laser_alarm_=false;
+   	    }
    	if(index ==0)
    		ROS_INFO("Index 0");
    	
@@ -83,11 +81,11 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "lidar_alarm"); //name this node
     ros::NodeHandle nh; 
     //create a Subscriber object and have it subscribe to the lidar topic
-    ros::Publisher pub = nh.advertise<std_msgs::Bool>("front_lidar_alarm", 1);
+    ros::Publisher pub = nh.advertise<std_msgs::Bool>("lidar_alarm", 1);
     lidar_alarm_publisher_ = pub; // let's make this global, so callback can use it
-    ros::Publisher pub2 = nh.advertise<std_msgs::Float32>("front_lidar_dist", 1);  
+    ros::Publisher pub2 = nh.advertise<std_msgs::Float32>("lidar_dist", 1);  
     lidar_dist_publisher_ = pub2;
-    ros::Subscriber lidar_subscriber = nh.subscribe("robot0/laser_0", 1, laserCallback);
+    ros::Subscriber lidar_subscriber = nh.subscribe("scan", 1, laserCallback);
     ros::spin(); //this is essentially a "while(1)" statement, except it
     // forces refreshing wakeups upon new data arrival
     // main program essentially hangs here, but it must stay alive to keep the callback function alive
