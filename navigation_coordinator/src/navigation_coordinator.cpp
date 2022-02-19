@@ -13,14 +13,14 @@ int main(int argc, char **argv){
     //Values for all the goal positions
     //These have to be manually modified for now
     int numGoals = 7;
-    double x[] = {0.0, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0};
-    double y[] = {0.0, 0.5, 0.5, 0.5, -0.5, 1.0, 0.0} ;
+    double x[] = {0.0, 3, 0.5, 0.5, 0.5, 0.0, 0.0};
+    double y[] = {0.0, 3, 0.5, 0.5, -0.5, 1.0, 0.0} ;
     double psi[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    //Mode can be one of four states: 0 = "forward travel", 1 = "spin in place", 2 = "backup", or 4 = "halt"
     int mode[] = {0, 0, 0, 0, 0, 0, 1};
 
     double sample_dt = 0.02;
-
-    
 
     //Is this necessary this time?
     //ros::Rate loop_timer(1/sample_dt);
@@ -48,9 +48,22 @@ int main(int argc, char **argv){
             }
             if (pose_srv.response.alarm && pose_srv.response.failed){
                 ROS_INFO("Waiting for obstacle to move...");
-                //Wait for obstacle to move out of the way for how long?
-                //Will the obstacle ever move?
-                //Should we send a new goal to backup and try a different goal?
+                //sleep for 5 seconds
+                ros::Duration(5.0).sleep();
+                //check if alarm or failed variables have changed
+                if(client.call(pose_srv)){
+                    if(pose_srv.response.alarm){
+                        ROS_INFO("Obstacle did not move. Backing up...");
+                        //pose_srv_request.mode = 2;
+                        //code for straight line backup motion request
+                    } else {
+                        ROS_INFO("Obstacle moved. Trying to reconverge on goal pose...");
+                        //do not need to increment i, will use the same goal pose as last time
+                    }
+                } else {
+                    ROS_ERROR("Failed to call service des_pose_service");
+                    return 1;
+                }
             } else if(!pose_srv.response.alarm && pose_srv.response.failed){
                 ROS_INFO("Failed to converge on goal pose. Stopping Mobot...");
                 //Should we stop the Mobot if it fails to converge on the goal pose? What other actions could we take?
