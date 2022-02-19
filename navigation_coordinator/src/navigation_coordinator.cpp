@@ -13,8 +13,8 @@ int main(int argc, char **argv){
     //Values for all the goal positions
     //These have to be manually modified for now
     int numGoals = 7;
-    double x[] = {0.0, 3, 0.5, 0.5, 0.5, 0.0, 0.0};
-    double y[] = {0.0, 3, 0.5, 0.5, -0.5, 1.0, 0.0} ;
+    double x[] = {0.0, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0};
+    double y[] = {0.0, 0.5, 0.5, 0.5, -0.5, 1.0, 0.0} ;
     double psi[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     //Mode can be one of four states: 0 = "forward travel", 1 = "spin in place", 2 = "backup", or 4 = "halt"
