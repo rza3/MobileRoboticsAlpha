@@ -18,6 +18,9 @@ ros::Publisher g_des_state_publisher;
 ros::Publisher g_des_psi_publisher;
 //ros::Publisher g_des_mode1_publisher;
 //ros::Publisher g_des_mode0_publisher;
+ros::Subscriber g_lidar_alarm_subscriber;
+
+bool g_lidar_alarm = false;
 
 void do_inits() { //similar to a constructor  
     //define a halt state; zero speed and spin, and fill with viable coords
@@ -104,7 +107,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             des_psi = trajBuilder.convertPlanarQuat2Psi(des_state.pose.pose.orientation);
             psi_msg.data = des_psi;
             g_des_psi_publisher.publish(psi_msg);
-           // g_des_mode1_publisher.publish(pose_mode1);
+            //g_des_mode1_publisher.publish(pose_mode1);
             //g_des_mode0_publisher.publish(pose_mode0);
             looprate.sleep(); //sleep for defined sample period, then do loop again
         }
@@ -120,6 +123,13 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         return true;
 }
 
+void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
+    g_lidar_alarm = alarm_msg.data;
+    if(g_lidar_alarm){
+        //ROS_INFO("LIDAR alarm detected");
+    }
+}
+
 
 
 
@@ -131,6 +141,7 @@ int main (int argc, char **argv)
     g_des_psi_publisher = n.advertise<std_msgs::Float64>("/desPsi", 1);
     //g_des_mode1_publisher = n.advertise<std_msgs::Bool>("/des_mode1",1);
     //g_des_mode0_publisher = n.advertise<std_msgs::Bool>("/des_mode0",1);
+    g_lidar_alarm_subscriber = n.subscribe("lidar_alarm",1,lidarAlarmCallback);
     ros::ServiceServer service = n.advertiseService("des_pose_service",callback);
 
     ros::spin();
