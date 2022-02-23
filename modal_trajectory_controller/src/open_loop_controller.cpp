@@ -2,6 +2,8 @@
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Int8.h>
+
 
 /*#include "mode_srv/ModeSrv.h"*/
 
@@ -21,6 +23,9 @@ double K_PHI = 0.0;
 double K_DISP = 0.0;
 double MAX_OMEGA = 0.5; // 0.5 rad/sec corresponds to 1.5 rad in 3 sec so 90 degrees in about 3 seconds
 //int g_des_mode = 5;
+int g_speed_multiplier = 0;
+int g_omega_multiplier = 0;
+bool g_backing_up = false;
 
 
 //utility fnc to compute min dang, accounting for periodicity
@@ -64,16 +69,23 @@ void currStateCallback(const nav_msgs::Odometry& curr_state){
     g_curr_y = curr_state.pose.pose.position.y;
     g_curr_phi = convertPlanarQuat2Phi(curr_state.pose.pose.orientation);
 }
-/*
-void desMode1Callback(const std_msgs::Bool& des_mode1) {
-    if(des_mode1.data)
-       g_des_mode = 1;
+
+void desModeCallback(const std_msgs::Int8& des_mode) {
+    if(des_mode.data == 0)
+       g_speed_multiplier = 1;
+    else{
+        if(des_mode.data == 1)
+            g_omega_multiplier = 1;
+        else{
+            if(des_mode.data == 2)
+                g_backing_up = true;
+        }
+    }
 }
-void desMode0Callback(const std_msgs::Bool& des_mode0) {
-    if(des_mode0.data)
-       g_des_mode = 0;
+
+void open_loop_control(){
+    //Put code for backing up open loop controller here.
 }
-*/
 
 void closed_loop_control(){
     double controller_speed;
@@ -143,7 +155,7 @@ int main(int argc, char **argv) {
     g_twist_publisher = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     ros::Subscriber des_state_subscriber = n.subscribe("/desState",1,desStateCallback); 
     ros::Subscriber curr_state_subscriber = n.subscribe("/current_state",1,currStateCallback); 
-    //ros::Subscriber mode_1_subscriber = n.subscribe("/des_mode1",1,desMode1Callback); 
+    ros::Subscriber mode_subscriber = n.subscribe("/desMode",1,desModeCallback); 
     //ros::Subscriber mode_0_subscriber = n.subscribe("/des_mode0",1,desMode0Callback); 
     /*ros::ServiceClient client = n.ServiceClient<mode_srv::ModeSrv>("mode_determining_service");
     mode_srv::ModeSrv mode_service;
@@ -157,7 +169,10 @@ int main(int argc, char **argv) {
     //ros::spin();
     while(ros::ok()){
         ros::spinOnce();
-        closed_loop_control();
+        if(g_backing_up == true)
+            open_loop_control();
+        else
+            closed_loop_control();
         g_twist_publisher.publish(g_pub_twist);
         if(g_des_vel - g_pub_twist.linear.x != 0)
             ROS_ERROR("x error of %f",g_des_vel - g_pub_twist.linear.x);

@@ -2,6 +2,7 @@
 #include "des_state_publisher_service/NavSrv.h"
 #include <std_msgs/Bool.h>
 #include <math.h>
+#include <std_msgs/Int32.h>
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "navigation_coordinator");

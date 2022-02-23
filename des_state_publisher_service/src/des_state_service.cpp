@@ -5,6 +5,8 @@
 #include <std_msgs/Float64.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Int8.h>
+
 
 
 geometry_msgs::Twist g_halt_twist;
@@ -16,9 +18,11 @@ geometry_msgs::PoseStamped g_end_pose;
 double g_dt= 0.02;
 ros::Publisher g_des_state_publisher;
 ros::Publisher g_des_psi_publisher;
+ros::Publisher g_des_mode_publisher;
 //ros::Publisher g_des_mode1_publisher;
 //ros::Publisher g_des_mode0_publisher;
 ros::Subscriber g_lidar_alarm_subscriber;
+std_msgs::Int8 mode_msg;
 
 bool g_lidar_alarm = false;
 
@@ -45,10 +49,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         double pose_y = request.y;
         double pose_psi = request.psi;
         int pose_mode = request.mode;
-        std_msgs::Bool pose_mode1;
-        std_msgs::Bool pose_mode0;
-        pose_mode1.data = false;
-        pose_mode0.data = false;
+        mode_msg.data = pose_mode;
 
         
         ros::Rate looprate(1 / g_dt); //timer for fixed publication rate   
@@ -107,6 +108,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             des_psi = trajBuilder.convertPlanarQuat2Psi(des_state.pose.pose.orientation);
             psi_msg.data = des_psi;
             g_des_psi_publisher.publish(psi_msg);
+            g_des_mode_publisher.publish(mode_msg);
             //g_des_mode1_publisher.publish(pose_mode1);
             //g_des_mode0_publisher.publish(pose_mode0);
             looprate.sleep(); //sleep for defined sample period, then do loop again
@@ -139,6 +141,7 @@ int main (int argc, char **argv)
     ros::NodeHandle n;
     g_des_state_publisher = n.advertise<nav_msgs::Odometry>("/desState", 1);
     g_des_psi_publisher = n.advertise<std_msgs::Float64>("/desPsi", 1);
+    g_des_mode_publisher = n.advertise<std_msgs::Int8>("/desMode",1);
     //g_des_mode1_publisher = n.advertise<std_msgs::Bool>("/des_mode1",1);
     //g_des_mode0_publisher = n.advertise<std_msgs::Bool>("/des_mode0",1);
     g_lidar_alarm_subscriber = n.subscribe("lidar_alarm",1,lidarAlarmCallback);
