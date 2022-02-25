@@ -63,7 +63,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         g_end_state = g_start_state;
         g_end_state.pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_end);
 
-
+        //CHANGE THESE TO CURRENT POSE!!!
         g_start_pose.pose.position.x = 0.0;
         g_start_pose.pose.position.y = 0.0;
         g_start_pose.pose.position.z = 0.0;
@@ -99,15 +99,20 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
 
         //while (ros::ok()) {
         ROS_INFO("building traj from start to end");
-        trajBuilder.build_point_and_go_traj(g_start_pose, g_end_pose, vec_of_states);
+        //trajBuilder.build_point_and_go_traj(g_start_pose, g_end_pose, vec_of_states);
+        if(pose_mode == 1)
+            trajBuilder.build_spin_traj(g_start_pose, g_end_pose, vec_of_states);
+        else
+            trajBuilder.build_travel_traj(g_start_pose, g_end_pose, vec_of_states);
+        // Test if this works for backing up.
         ROS_INFO("publishing desired states ");
         for (int i = 0; i < vec_of_states.size(); i++) {
             des_state = vec_of_states[i];
             des_state.header.stamp = ros::Time::now();
             g_des_state_publisher.publish(des_state);
-            des_psi = trajBuilder.convertPlanarQuat2Psi(des_state.pose.pose.orientation);
-            psi_msg.data = des_psi;
-            g_des_psi_publisher.publish(psi_msg);
+            //des_psi = trajBuilder.convertPlanarQuat2Psi(des_state.pose.pose.orientation);
+            //psi_msg.data = des_psi;
+            //g_des_psi_publisher.publish(psi_msg);
             g_des_mode_publisher.publish(mode_msg);
             //g_des_mode1_publisher.publish(pose_mode1);
             //g_des_mode0_publisher.publish(pose_mode0);
