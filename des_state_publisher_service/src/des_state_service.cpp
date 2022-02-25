@@ -22,6 +22,7 @@ ros::Publisher g_des_mode_publisher;
 //ros::Publisher g_des_mode1_publisher;
 //ros::Publisher g_des_mode0_publisher;
 ros::Subscriber g_lidar_alarm_subscriber;
+ros::Subscriber g_current_state_subscriber;
 std_msgs::Int8 mode_msg;
 
 bool g_lidar_alarm = false;
@@ -40,6 +41,9 @@ void do_inits() { //similar to a constructor
     g_start_state.pose.pose.position.x = 0;
     g_start_state.pose.pose.position.y = 0;
     g_start_state.pose.pose.position.z = 0;
+    TrajBuilder trajBuilder; //instantiate one of these
+    g_start_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(0);
+        
 }
 
 bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_publisher_service::NavSrvResponse& response)
@@ -64,10 +68,11 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         g_end_state.pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_end);
 
         //CHANGE THESE TO CURRENT POSE!!!
+        /*
         g_start_pose.pose.position.x = 0.0;
         g_start_pose.pose.position.y = 0.0;
         g_start_pose.pose.position.z = 0.0;
-        g_start_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_start);
+        g_start_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_start);*/
         g_end_pose = g_start_pose; //includes copying over twist with all zeros
         //don't really care about orientation, since this will follow from 
         // point-and-go trajectory; 
@@ -136,7 +141,12 @@ void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
         //ROS_INFO("LIDAR alarm detected");
     }
 }
-
+void currStateCallback(const nav_msgs::Odometry& curr_state){
+    g_start_pose.pose.position.x = curr_state.pose.pose.position.x;;
+    g_start_pose.pose.position.y = curr_state.pose.pose.position.y;
+    g_start_pose.pose.position.z = curr_state.pose.pose.position.z;
+    g_start_pose.pose.orientation = curr_state.pose.pose.orientation;
+}
 
 
 
@@ -151,7 +161,7 @@ int main (int argc, char **argv)
     //g_des_mode0_publisher = n.advertise<std_msgs::Bool>("/des_mode0",1);
     g_lidar_alarm_subscriber = n.subscribe("lidar_alarm",1,lidarAlarmCallback);
     ros::ServiceServer service = n.advertiseService("des_pose_service",callback);
-
+    g_current_state_subscriber = n.subscribe("/current_state",1,currStateCallback);
     ros::spin();
     return 0;
 }

@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
     ros::Subscriber des_state_subscriber = n.subscribe("/desState",1,desStateCallback); 
     ros::Subscriber curr_state_subscriber = n.subscribe("/current_state",1,currStateCallback); 
     ros::Subscriber mode_subscriber = n.subscribe("/desMode",1,desModeCallback); 
-    //ros::Subscriber mode_0_subscriber = n.subscribe("/des_mode0",1,desMode0Callback); 
+    //ros::Subscriber mode_0_subscriber = n.subscribe("/des_mode0",1,desMode0Callbaccurr_state_subscriberk); 
     /*ros::ServiceClient client = n.ServiceClient<mode_srv::ModeSrv>("mode_determining_service");
     mode_srv::ModeSrv mode_service;
     client.call(mode_service);
