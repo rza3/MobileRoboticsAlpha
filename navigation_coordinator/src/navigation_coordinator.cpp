@@ -19,7 +19,7 @@ int main(int argc, char **argv){
     double psi[] = {0.0, 0.0, 0.57, 0.0, 0.0, 3.1, 0.0};
 
     //Mode can be one of four states: 0 = "forward travel", 1 = "spin in place", 2 = "backup", or 4 = "halt"
-    int mode[] = {0, 0, 1, 0, 0, 1, 0};
+    int mode[] = {0, 0, 1, 2,0, 1, 0};
 
     double sample_dt = 0.02;
 

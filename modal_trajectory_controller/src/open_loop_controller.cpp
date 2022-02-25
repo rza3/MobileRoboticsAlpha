@@ -79,6 +79,7 @@ void desModeCallback(const std_msgs::Int8& des_mode) {
         else{
             if(des_mode.data == 2)
                 g_backing_up = true;
+                g_pub_twist.linear.x = -1*g_des_vel;
         }
     }
 }
