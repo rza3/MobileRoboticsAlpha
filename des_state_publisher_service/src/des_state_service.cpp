@@ -25,7 +25,7 @@ ros::Subscriber g_lidar_alarm_subscriber;
 ros::Subscriber g_current_state_subscriber;
 std_msgs::Int8 mode_msg;
 
-bool g_lidar_alarm = false;
+bool g_lidar_alarm;
 
 void do_inits() { //similar to a constructor  
     //define a halt state; zero speed and spin, and fill with viable coords
@@ -45,7 +45,12 @@ void do_inits() { //similar to a constructor
     g_start_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(0);
         
 }
-
+void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
+    g_lidar_alarm = alarm_msg.data;
+    if(g_lidar_alarm){
+        ROS_INFO("LIDAR alarm detected");
+    }
+}
 bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_publisher_service::NavSrvResponse& response)
 {
         ROS_INFO("callback_activated");
@@ -88,10 +93,17 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
          //   pose_mode0.data = true;
 
        // }
-        g_end_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_end);
-        g_end_pose.pose.position.x = pose_x; 
-        g_end_pose.pose.position.y = pose_y; 
-
+       if(!g_lidar_alarm){
+           g_end_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_end);
+           g_end_pose.pose.position.x = pose_x; 
+           g_end_pose.pose.position.y = pose_y; 
+           ROS_INFO("Not Stopping");
+       }
+       if(g_lidar_alarm){
+           ROS_INFO("STOPPING");
+       }
+        
+        
         double des_psi;
         std_msgs::Float64 psi_msg;
         std::vector<nav_msgs::Odometry> vec_of_states;
@@ -132,15 +144,15 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         response.alarm = false;
         response.failed = false;
 
+        if(g_lidar_alarm){
+           response.alarm = true;
+           response.failed = true;
+       }
+
         return true;
 }
 
-void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
-    g_lidar_alarm = alarm_msg.data;
-    if(g_lidar_alarm){
-        //ROS_INFO("LIDAR alarm detected");
-    }
-}
+
 void currStateCallback(const nav_msgs::Odometry& curr_state){
     g_start_pose.pose.position.x = curr_state.pose.pose.position.x;;
     g_start_pose.pose.position.y = curr_state.pose.pose.position.y;
