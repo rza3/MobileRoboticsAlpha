@@ -59,7 +59,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         double pose_psi = request.psi;
         int pose_mode = request.mode;
         mode_msg.data = pose_mode;
-
+        
         
         ros::Rate looprate(1 / g_dt); //timer for fixed publication rate   
         TrajBuilder trajBuilder; //instantiate one of these
@@ -130,6 +130,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             //des_psi = trajBuilder.convertPlanarQuat2Psi(des_state.pose.pose.orientation);
             //psi_msg.data = des_psi;
             //g_des_psi_publisher.publish(psi_msg);
+            ROS_WARN("MODE IS [%i]",mode_msg.data);
             g_des_mode_publisher.publish(mode_msg);
             //g_des_mode1_publisher.publish(pose_mode1);
             //g_des_mode0_publisher.publish(pose_mode0);
@@ -166,6 +167,7 @@ int main (int argc, char **argv)
 {
     ros::init(argc, argv, "des_state_publisher_service");
     ros::NodeHandle n;
+    g_current_state_subscriber = n.subscribe("/current_state",1,currStateCallback);
     g_des_state_publisher = n.advertise<nav_msgs::Odometry>("/desState", 1);
     g_des_psi_publisher = n.advertise<std_msgs::Float64>("/desPsi", 1);
     g_des_mode_publisher = n.advertise<std_msgs::Int8>("/desMode",1);
@@ -173,7 +175,7 @@ int main (int argc, char **argv)
     //g_des_mode0_publisher = n.advertise<std_msgs::Bool>("/des_mode0",1);
     g_lidar_alarm_subscriber = n.subscribe("lidar_alarm",1,lidarAlarmCallback);
     ros::ServiceServer service = n.advertiseService("des_pose_service",callback);
-    g_current_state_subscriber = n.subscribe("/current_state",1,currStateCallback);
+    
     ros::spin();
     return 0;
 }

@@ -71,6 +71,8 @@ void currStateCallback(const nav_msgs::Odometry& curr_state){
 }
 
 void desModeCallback(const std_msgs::Int8& des_mode) {
+    g_omega_multiplier = 0;
+    g_speed_multiplier = 0;
     if(des_mode.data == 0)
        g_speed_multiplier = 1;
     else{
@@ -146,6 +148,7 @@ void closed_loop_control(){
         g_pub_twist.angular.z = g_omega_multiplier*controller_omega;
    // else if(g_des_mode == 0)
         g_pub_twist.linear.x = g_speed_multiplier*controller_speed;
+        
     
     //g_pub_twist.header.stamp = ros::Time::now(); // look up the time and put it in the header 
 }
@@ -169,15 +172,16 @@ int main(int argc, char **argv) {
 
     //ros::spin();
     while(ros::ok()){
+        
         ros::spinOnce();
         if(g_backing_up == false)
             closed_loop_control();
         // if g_backing_up is true, we just need open loop control so no need to modify g_pub_twist
         g_twist_publisher.publish(g_pub_twist);
-        if(g_des_vel - g_pub_twist.linear.x != 0)
+        /*if(g_des_vel - g_pub_twist.linear.x != 0)
             ROS_ERROR("x error of %f",g_des_vel - g_pub_twist.linear.x);
         if(g_des_omega - g_pub_twist.angular.z != 0)
-            ROS_ERROR("vel error of %f",g_des_omega - g_pub_twist.angular.z );
+            ROS_ERROR("vel error of %f",g_des_omega - g_pub_twist.angular.z );*/
     }
 }
 
