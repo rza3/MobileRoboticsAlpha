@@ -58,7 +58,10 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         double pose_y = request.y;
         double pose_psi = request.psi;
         int pose_mode = request.mode;
-        mode_msg.data = pose_mode;
+        if(pose_mode >-1)
+            mode_msg.data = pose_mode;
+        else
+            mode_msg.data = 1;
         
         
         ros::Rate looprate(1 / g_dt); //timer for fixed publication rate   
@@ -66,12 +69,12 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         trajBuilder.set_dt(g_dt); //make sure trajectory builder and main use the same time step
         trajBuilder.set_alpha_max(1.0);
         //hard code two poses; more generally, would get poses from a nav_msgs/Path message.
-        double psi_start = 0.0;// what is the start point should be??
+        /*double psi_start = 0.0;// what is the start point should be??
         double psi_end = pose_psi;
         g_start_state.pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_start);
         g_end_state = g_start_state;
         g_end_state.pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_end);
-
+*/
         //CHANGE THESE TO CURRENT POSE!!!
         /*
         g_start_pose.pose.position.x = 0.0;
@@ -93,7 +96,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
          //   pose_mode0.data = true;
 
        // }
-       if(!g_lidar_alarm){
+       if(!g_lidar_alarm & pose_mode>-1){
            g_end_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_end);
            g_end_pose.pose.position.x = pose_x; 
            g_end_pose.pose.position.y = pose_y; 
