@@ -97,7 +97,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
 
        // }
        if(!g_lidar_alarm & pose_mode>-1){
-           g_end_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_end);
+           g_end_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(pose_psi);
            g_end_pose.pose.position.x = pose_x; 
            g_end_pose.pose.position.y = pose_y; 
            ROS_INFO("Not Stopping");
