@@ -17,7 +17,7 @@ double range_max_ = 0.0;
 bool laser_alarm_=false;
 double tolerance = 0.5; // can be tuned
 double radius = 1;  // can be tuned
-double stopping_distance = 0.5; //can be tuned
+double stopping_distance = 0.35; //can be tuned
 double detect_length = stopping_distance + tolerance; //replaced MIN_SAFE_DISTANCE with this
 double detect_width = radius + tolerance;
 int num_rays;

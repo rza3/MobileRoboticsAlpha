@@ -16,7 +16,7 @@
 const double MAIN_DT=0.01; //100Hz
 const double K_YAW = 0.1; //gain for heading corrections
 //const double K_AMCL= 0.002; // gain for GPS corrections
-const double K_AMCL= 0.2;
+const double K_AMCL= 0.02;
 const double L_MOVE = 0.1; //motion to travel, in m, before heading updates from GPS
 
 XformUtils xform_utils; // for type conversions

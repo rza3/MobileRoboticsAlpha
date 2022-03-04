@@ -24,12 +24,13 @@ int main(int argc, char **argv){
     int numGoals = 28;
     double x[] =   {0.0, 0.0, 0.0, 0.0, 0.0,   0.825, 0.825, 0.825, 2.869,  3.100, 2.869, 2.869, 2.869, 2.869, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.00, 0.00, 0.00};
     double y[] =   {0.0, 0.0, 0.0, 0.0, 0.0,   0.584, 0.584, 0.584, 0.584,  0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 1.864, 2.170, 1.864, 1.864, 1.864, 0.00,  0.00,  0.0,   0.00, 0.00, 0.00 };
-    double psi[] = {0.0, 0.1, 6.1, 0.0, 0.434, 0.434, 0.0,   0.0,    0.0,   0.0,   0.0,    1.57,  3.14,   3.14, 3.14,  1.57,  1.57, 1.57,  1.57,  1.57,  -1.57, -1.57, -1.57, 3.14,  3.14,  3.14, 0.00, 0.00};
+    double psi[] = {0.0, 1.0, -1.0, 0.0, 0.434, 0.434, 0.0,   0.0,    0.0,   0.0,   0.0,    1.57,  3.14,   3.14, 3.14,  1.57,  1.57, 1.57,  1.57,  1.57,  -1.57, -1.57, -1.57, 3.14,  3.14,  3.14, 0.00, 0.00};
     int mode[] =   {0,   1,     1,   1,  1,      0,     1,     1,     0,    0,      2,      1,    1,         1,   0,    1,    1,     0,      0,     2,      1,   1,      0,     1,     1,    0,     1,   1};
     //Mode can be one of four states: 0 = "forward travel", 1 = "spin in place", 2 = "backup", or 4 = "halt"
     //int mode[] = {0, 1, 1, 1, 1, 0, 1, 0, 0, 2, 1, 0, 1, 0, 0, 2, 1,0, 1, 0, 1};
 
-    double sample_dt = 0.2;
+    //double sample_dt = 0.02;
+    double sample_dt = 0.5;
     //Is this necessary this time?
     //ros::Rate loop_timer(1/sample_dt);
 
@@ -42,12 +43,14 @@ int main(int argc, char **argv){
     pose_srv.request.mode = mode[0];
     
     for(int i = 1; i < numGoals;){
-        ROS_INFO("Reached inside for loop");
+        //ROS_INFO("Reached inside for loop");
         pose_srv.request.x = x[i];
         pose_srv.request.y = y[i];
         pose_srv.request.psi = psi[i];
         pose_srv.request.mode = mode[i];
-        ROS_INFO("i is %i",i);
+        //ROS_INFO("i is %i",i);
+        if(i==6)
+            ROS_ERROR("SHOULD BE TURNING BACK TO 0 HERE!!");
         //i++;
         if (client.call(pose_srv) && ros::ok()){
             if(pose_srv.response.alarm){
@@ -77,7 +80,7 @@ int main(int argc, char **argv){
                 //Should we stop the Mobot if it fails to converge on the goal pose? What other actions could we take?
             } else if(!pose_srv.response.alarm && !pose_srv.response.failed){
                 //Move to next goal in list.
-                ROS_INFO("Successfully converged on goal pose. Sending next goal...");
+                //ROS_INFO("Successfully converged on goal pose. Sending next goal...");
                 i++;
             }
         } else {
