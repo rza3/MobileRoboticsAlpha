@@ -18,9 +18,9 @@ double g_curr_phi = 0.0;
 double g_des_vel = 0;
 double g_des_omega = 0;
 geometry_msgs::Twist g_pub_twist;
-double K_TRIP_DIST = 0.0;
-double K_PHI = 0.0;
-double K_DISP = 0.0;
+double K_TRIP_DIST = 1.0;
+double K_PHI = 1.0;
+double K_DISP = 1.0;
 double MAX_OMEGA = 0.5; // 0.5 rad/sec corresponds to 1.5 rad in 3 sec so 90 degrees in about 3 seconds
 //int g_des_mode = 5;
 int g_speed_multiplier = 0;
