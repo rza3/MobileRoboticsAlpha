@@ -28,7 +28,24 @@ int main(int argc, char **argv){
     int mode[] =   {-1,   0,   1,     1,   1,  1,      0,     1,     1,     0,    0,      2,      1,    1,         1,   0,    1,    1,     0,      0,     2,      1,   1,      0,     1,     1,    0,     1,   1};
     //Mode can be one of five states: -1 = "initial pose", 0 = "forward travel", 1 = "spin in place", 2 = "backup", or 4 = "halt"
     //int mode[] = {0, 1, 1, 1, 1, 0, 1, 0, 0, 2, 1, 0, 1, 0, 0, 2, 1,0, 1, 0, 1};
-
+    
+    int numGoalsInit = 1;
+    double xInit[] = {0.0};
+    double yInit[] = {0.0};
+    double psiInit[] = {0.0};
+    int modeInit[] = {-1};
+    
+    int numGoalsAMCL = 11;
+    double xAMCL[] =   {0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.10, 0.00 };
+    double yAMCL[] =   {0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00 };
+    double psiAMCL[] = {0.00, 0.78, 1.57, 2.36, 3.14, 3.93, 4.71, 5.50, 0.00, 0.00, 0.00 };
+    int modeAMCL[] =   {0,    1,    1,    1,    1,    1,    1,    1,    1,    0,    2    };
+    
+    int numGoalsDiag1 = 3;
+    double xDiag1[] =   {0.000, 0.825, 0.825};
+    double yDiag1[] =   {0.000, 0.584, 0.584};
+    double psiDiag1[] = {0.434, 0.434, 0.000};
+    int modeDiag1[] =   {1,     0,     1};
     //double sample_dt = 0.02;
     double sample_dt = 0.5;
     //Is this necessary this time?
