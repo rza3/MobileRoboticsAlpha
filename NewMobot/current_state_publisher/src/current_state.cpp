@@ -14,7 +14,7 @@
 #include <xform_utils/xform_utils.h>
 
 const double MAIN_DT=0.01; //100Hz
-const double K_YAW = 0.1; //gain for heading corrections
+const double K_YAW = 0.02; //gain for heading corrections
 //const double K_AMCL= 0.002; // gain for GPS corrections
 const double K_AMCL= 0.02;
 const double L_MOVE = 0.1; //motion to travel, in m, before heading updates from GPS
@@ -34,6 +34,7 @@ double g_amcl_yaw=0;
 
 bool g_odom_good=false; //odom
 double g_odom_speed=0;
+double g_odom_angular_speed = 0;
 nav_msgs::Odometry g_current_odom;
 
 //yaw from ideal gps/gazebo model state
@@ -61,20 +62,24 @@ nav_msgs::Odometry g_current_odom;
 void amclXYCallback(const geometry_msgs::PoseWithCovarianceStamped& amcl_pose){
     x_amcl=amcl_pose.pose.pose.position.x;
     y_amcl=amcl_pose.pose.pose.position.y;
+    geometry_msgs::Quaternion  state_quat = amcl_pose.pose.pose.orientation;
+    g_amcl_yaw = xform_utils.convertPlanarQuat2Phi(state_quat);
     g_amcl_pose=amcl_pose;
     g_amcl_good= true;
 }
 //amcl orientation
+/*
 void amclOriCallback(const geometry_msgs::PoseWithCovarianceStamped& amcl_pose) {
    geometry_msgs::Quaternion  state_quat = amcl_pose.pose.pose.orientation;
    g_amcl_yaw = xform_utils.convertPlanarQuat2Phi(state_quat);
-}
+}*/
 
 
 //drifty odom info--only care about speed here
 void odomCallback(const nav_msgs::Odometry& odom_rcvd) {
     g_current_odom = odom_rcvd;
     g_odom_speed = odom_rcvd.twist.twist.linear.x;
+    g_odom_angular_speed = odom_rcvd.twist.twist.angular.z;
     g_odom_good=true;   
 }
 
@@ -110,17 +115,19 @@ int main(int argc, char** argv)
     //ros::Subscriber gps_subscriber = nh.subscribe("gazebo_mobot_pose", 1, gazeboPoseCallback);     
     // ros::Subscriber imu_subscriber = nh.subscribe("/imu_data", 1, imuCallback); 
     ros::Subscriber odom_subscriber = nh.subscribe("/odom",1,odomCallback);
-    ros::Subscriber true_state_subscriber = nh.subscribe("/amcl_pose",1,amclOriCallback);
+  //  ros::Subscriber true_state_subscriber = nh.subscribe("/amcl_pose",1,amclOriCallback);
     ros::Publisher localization_publisher = nh.advertise<nav_msgs::Odometry>("/current_state", 1);
-    //ros::Publisher yaw_publisher = nh.advertise<std_msgs::Float64>("/yaw_estimate",1);
-    //ros::Publisher true_yaw_publisher = nh.advertise<std_msgs::Float64>("/true_yaw",1);
+    ros::Publisher yaw_publisher = nh.advertise<std_msgs::Float64>("/yaw_estimate",1);
+    ros::Publisher true_yaw_publisher = nh.advertise<std_msgs::Float64>("/true_yaw",1);
     
     ROS_INFO("warm up callbacks: ");
     ROS_INFO("waiting on amcl: ");
     while (!g_amcl_good) {
+        ROS_ERROR("G_AMCL IS NOT GOOD");
         ros::spinOnce();
         ros::Duration(0.1).sleep();
             }
+        
     pose_estimate.header.stamp = ros::Time::now();
     pose_estimate.pose.position.x = x_amcl;
     pose_estimate.pose.position.y = y_amcl;    
@@ -133,6 +140,7 @@ int main(int argc, char** argv)
   //  }
     ROS_INFO("amcl is good; wait for odom:");
     while (!g_odom_good) {
+         ROS_ERROR("G_ODOM IS NOT GOOD");
         ros::spinOnce();
         ros::Duration(0.1).sleep();        
     }
@@ -148,7 +156,7 @@ int main(int argc, char** argv)
     x_est_old = x_est;
     y_est =y_amcl;
     y_est_old = y_est;
-
+    yaw_est = g_amcl_yaw;
     current_state = g_current_odom;
     current_state.header.stamp = ros::Time::now();
 
@@ -157,6 +165,7 @@ int main(int argc, char** argv)
 
         x_est = (1-K_AMCL)*x_est + K_AMCL*x_amcl; //incorporate gps feedback
         y_est = (1-K_AMCL)*y_est + K_AMCL*y_amcl; //ditto
+        //yaw_est = (1-K_YAW)*yaw_est + K_YAW*g_amcl_yaw;
         dl_odom_est = MAIN_DT*g_odom_speed; //moved this far in 1 DT
         move_dist+= dl_odom_est; //keep track of cumulative move distance
         //yaw_est+= MAIN_DT*g_omega_z_imu; //integrate the IMU's yaw to estimate heading
@@ -167,9 +176,12 @@ int main(int argc, char** argv)
         dy_odom = dl_odom_est*sin(yaw_est); //inferred from speed and heading est
         x_est+= dx_odom; //cumulative x and y estimates updated from odometry
         y_est+= dy_odom;
+        yaw_est+=MAIN_DT*g_odom_angular_speed;
+        if (yaw_est<-M_PI) yaw_est+= 2.0*M_PI; //remap periodically
+            if (yaw_est>M_PI) yaw_est-= 2.0*M_PI; 
         delta_odom_x+= dx_odom; //keep track of x, y displacements over specified
         delta_odom_y+= dy_odom; // distances for yaw updates
-        if (fabs(move_dist) > L_MOVE) { //if moved this far since last yaw update,
+        /*if (fabs(move_dist) > L_MOVE) { //if moved this far since last yaw update,
             //time to do another yaw update based on GPS
             //since last update, express motion in polar coords based on gps
             dang_amcl = atan2((y_est-y_est_old),(x_est-x_est_old));
@@ -187,13 +199,12 @@ int main(int argc, char** argv)
             move_dist=0;
             delta_odom_y=0;
             delta_odom_x=0;
-        }
-        
+        } */
         yaw_msg.data = yaw_est; //publish the yaw estimate, for use/display
-        //yaw_publisher.publish(yaw_msg);
+        yaw_publisher.publish(yaw_msg);
         
         yaw_msg.data =g_amcl_yaw; //pub actual yaw, for comparison
-        //true_yaw_publisher.publish(yaw_msg);
+        true_yaw_publisher.publish(yaw_msg);
         //publish x and y estimates 
         pose_estimate.header.stamp = ros::Time::now();
         pose_estimate.pose.position.x = x_est;
