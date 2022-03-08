@@ -45,7 +45,38 @@ int main(int argc, char **argv){
     double xDiag1[] =   {0.000, 0.825, 0.825};
     double yDiag1[] =   {0.000, 0.584, 0.584};
     double psiDiag1[] = {0.434, 0.434, 0.000};
-    int modeDiag1[] =   {1,     0,     1};
+    int modeDiag1[] =   {1,     0,     1    };
+    
+    int numGoalsStraight1 = 2;
+    double xStraight1[] =   {2.869, 3.100};
+    double yStraight1[] =   {0.584, 0.584};
+    double psiStraight1[] = {0.000, 0.000};
+    int modeStraight1[] =   {0,     0    };
+    
+    int numGoalsBack1 = 3;
+    double xBack1[] =   {2.869, 2.869, 0.308};
+    double yBack1[] =   {0.584, 0.584, 0.584};
+    double psiBack1[] = {0.000, 3.142, 3.142};
+    int modeBack1[] =   {2,     1,     0  };
+    
+    int numGoalsLeft = 3;
+    double xLeft[] =   {0.308, 0.308, 0.308};
+    double yLeft[] =   {0.584, 1.864, 2.170};
+    double psiLeft[] = {1.571, 1.571, 1.571};
+    int modeLeft[] =   {1,     0,     0    };
+    
+    int numGoalsBackOrigin = 6;
+    double xBackOrigin[] =   {0.308,  0.308,  0.308, 0.308, 0.000, 0.000};
+    double yBackOrigin[] =   {1.864,  1.864,  0.000, 0.000, 0.000, 0.000};
+    double psiBackOrigin[] = {1.571, -1.571, -1.571, 3.142, 3.142, 0.000};
+    int modeBackOrigin[] =   {2,     1,       0,     1,     0,     1};
+    
+    // For debugging set x,y,psi, mode, and numGoals to any of the above sections to see which works and where the errors are.
+    
+    
+    
+    
+    
     //double sample_dt = 0.02;
     double sample_dt = 0.5;
     //Is this necessary this time?
