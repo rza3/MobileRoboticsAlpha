@@ -15,7 +15,7 @@ nav_msgs::Odometry g_start_state;
 geometry_msgs::PoseStamped g_start_pose;
 geometry_msgs::PoseStamped g_end_pose;
 
-double g_dt= 0.1;
+double g_dt= 0.005; //half of current state dt
 ros::Publisher g_des_state_publisher;
 ros::Publisher g_des_psi_publisher;
 ros::Publisher g_des_mode_publisher;
