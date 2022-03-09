@@ -14,7 +14,7 @@
 #include <xform_utils/xform_utils.h>
 
 const double MAIN_DT=0.01; //100Hz
-const double K_YAW = 0.02; //gain for heading corrections
+const double K_YAW = 0.00; //gain for heading corrections
 //const double K_AMCL= 0.002; // gain for GPS corrections
 const double K_AMCL= 0.02;
 const double L_MOVE = 0.1; //motion to travel, in m, before heading updates from GPS
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 
         x_est = (1-K_AMCL)*x_est + K_AMCL*x_amcl; //incorporate gps feedback
         y_est = (1-K_AMCL)*y_est + K_AMCL*y_amcl; //ditto
-        //yaw_est = (1-K_YAW)*yaw_est + K_YAW*g_amcl_yaw;
+        yaw_est = (1-K_YAW)*yaw_est + K_YAW*g_amcl_yaw;
         dl_odom_est = MAIN_DT*g_odom_speed; //moved this far in 1 DT
         move_dist+= dl_odom_est; //keep track of cumulative move distance
         //yaw_est+= MAIN_DT*g_omega_z_imu; //integrate the IMU's yaw to estimate heading

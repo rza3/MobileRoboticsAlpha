@@ -46,7 +46,7 @@ void do_inits() { //similar to a constructor
         
 }
 void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
-    if(g_start_pose.pose.position.x<2.8)
+    if(g_start_pose.pose.position.x<2.6 && g_start_pose.pose.position.y<1.7)
         g_lidar_alarm = alarm_msg.data;
     else
         g_lidar_alarm = false;
