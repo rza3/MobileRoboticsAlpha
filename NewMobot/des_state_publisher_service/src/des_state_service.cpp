@@ -46,7 +46,10 @@ void do_inits() { //similar to a constructor
         
 }
 void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
-    g_lidar_alarm = alarm_msg.data;
+    if(g_start_pose.pose.position.x<2.8)
+        g_lidar_alarm = alarm_msg.data;
+    else
+        g_lidar_alarm = false;
     if(g_lidar_alarm){
         ROS_INFO("LIDAR alarm detected");
     }
