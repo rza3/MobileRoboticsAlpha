@@ -49,7 +49,7 @@ void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
     if(g_start_pose.pose.position.x<2.6 && g_start_pose.pose.position.y<1.7)
         g_lidar_alarm = alarm_msg.data;
     else
-        g_lidar_alarm = false;
+        g_lidar_alarm = false; //if we are near the tables, ignore lidar alarm
     if(g_lidar_alarm){
         ROS_INFO("LIDAR alarm detected");
     }
@@ -62,9 +62,9 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         double pose_psi = request.psi;
         int pose_mode = request.mode;
         if(pose_mode >-1)
-            mode_msg.data = pose_mode;
+            mode_msg.data = pose_mode; //For non-initializing modes, do not change the mode
         else
-            mode_msg.data = 1;
+            mode_msg.data = 1; //if the pose_mode is -1 (initialize) then only do rotation (mode 1)
         
         
         ros::Rate looprate(1 / g_dt); //timer for fixed publication rate   
@@ -99,6 +99,8 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
          //   pose_mode0.data = true;
 
        // }
+    
+       //unless there is a lidar alarm or we are initializing, set end pose to be the desired pose. If there is a lidar alarm or we are initializing, end pose should the same as start pose.
        if(!g_lidar_alarm & pose_mode>-1){
            g_end_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(pose_psi);
            g_end_pose.pose.position.x = pose_x; 
@@ -178,7 +180,7 @@ int main (int argc, char **argv)
     ros::ServiceServer service = n.advertiseService("des_pose_service",callback);
     g_des_state_publisher = n.advertise<nav_msgs::Odometry>("/desState", 1);
     g_des_psi_publisher = n.advertise<std_msgs::Float64>("/desPsi", 1);
-    g_des_mode_publisher = n.advertise<std_msgs::Int8>("/desMode",1);
+    g_des_mode_publisher = n.advertise<std_msgs::Int8>("/desMode",1); // publish desired mode on a separate topic
     //g_des_mode1_publisher = n.advertise<std_msgs::Bool>("/des_mode1",1);
     //g_des_mode0_publisher = n.advertise<std_msgs::Bool>("/des_mode0",1);
     
