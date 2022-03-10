@@ -21,15 +21,6 @@ int main(int argc, char **argv){
     //Mode can be one of four states: 0 = "forward travel", 1 = "spin in place", 2 = "backup", or 4 = "halt"
     int mode[] = {0, 0, 0, 2, 0, 1, 0,1,0};*/
 
-    /*Full motion
-    int numGoals = 29;
-    double x[] =   {0,0, 0.0, 0.0, 0.0, 0.0, 0.0,   0.825, 0.825, 0.825, 2.869,  3.100, 2.869, 2.869, 2.869, 2.869, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.308, 0.00, 0.00, 0.00};
-    double y[] =   {0.0, 0.0, 0.0, 0.0, 0.0, 0.0,   0.584, 0.584, 0.584, 0.584,  0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 1.864, 2.170, 1.864, 1.864, 1.864, 0.00,  0.00,  0.0,   0.00, 0.00, 0.00 };
-    double psi[] = {0.0, 0.0, 0.1, 6.1, 0.0, 0.434, 0.434, 0.0,   0.0,    0.0,   0.0,   0.0,    1.57,  3.14,   3.14, 3.14,  1.57,  1.57, 1.57,  1.57,  1.57,  -1.57, -1.57, -1.57, 3.14,  3.14,  3.14, 0.00, 0.00};
-    int mode[] =   {-1,   0,   1,     1,   1,  1,      0,     1,     1,     0,    0,      2,      1,    1,         1,   0,    1,    1,     0,      0,     2,      1,   1,      0,     1,     1,    0,     1,   1};
-    //Mode can be one of five states: -1 = "initial pose", 0 = "forward travel", 1 = "spin in place", 2 = "backup", or 4 = "halt"
-    //int mode[] = {0, 1, 1, 1, 1, 0, 1, 0, 0, 2, 1, 0, 1, 0, 0, 2, 1,0, 1, 0, 1};
-    */
 
     /*Just initialize
     int numGoals = 1;
@@ -99,7 +90,9 @@ int main(int argc, char **argv){
     double psi[] = {0.0, 0.00, 0.78, 1.57, 2.36, 3.14, 3.93, 4.71, 5.50, 0.00, 0.00, 0.00, 0.434, 0.434, 0.000, 0.000, 0.000, 0.000, 3.142, 3.142, 1.571, 1.571, 1.571 };
     int mode[] =   {-1,  0,    1,    1,    1,    1,    1,    1,    1,    1,    0,    2,    1,     0,     1,     0,     0,     2,     1,     0,     1,     0,     0     };*/
 
-    /*Initialize, localize, move diagonal, go to first table, go back, go to left table, go back to origin*/
+    // For debugging set x,y,psi, mode, and numGoals to any of the above sections to see which works and where the errors are.
+    
+    /*Initialize, localize, move diagonal, go to first table, go back, go to left table, go back to origin (full motion)*/
     int numGoalsBackOrigin = 6;
     double xBackOrigin[] =   {0.308,  0.308,  0.308, 0.308, 0.000, 0.000};
     double yBackOrigin[] =   {1.864,  1.864,  0.000, 0.000, 0.000, 0.000};
@@ -111,7 +104,6 @@ int main(int argc, char **argv){
     double psi[] = {0.0, 0.00, 0.78, 1.57, 2.36, 3.14, 3.93,  4.71,   5.50, 0.00, 0.00, 0.00, 0.434, 0.434, 0.000, 0.000, 0.000, 0.000, 1.047, 2.094, 3.142, 3.142, 1.571, 1.571, 1.571, 1.571,  0.780, 0.000, -0.780, -1.571, -1.571, 3.142, 3.142,1.571, 0.000 };
     int mode[] =   {-1,  0,    1,    1,    1,    1,    1,       1,    1,    1,    0,    2,    1,     0,     1,     0,     0,     2,     1,     1,     1,     0,     1,     0,     0,     2,      1,      1,       1,     1,     0,     1,     0,      1,    1     };
     
-    // For debugging set x,y,psi, mode, and numGoals to any of the above sections to see which works and where the errors are.
     
     
     
