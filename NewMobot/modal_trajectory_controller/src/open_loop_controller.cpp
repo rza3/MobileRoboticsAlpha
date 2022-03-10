@@ -23,9 +23,9 @@ double K_PHI = 1.0;
 double K_DISP = 1.0;
 double MAX_OMEGA = 0.5; // 0.5 rad/sec corresponds to 1.5 rad in 3 sec so 90 degrees in about 3 seconds
 //int g_des_mode = 5;
-int g_speed_multiplier = 0;
-int g_omega_multiplier = 0;
-bool g_backing_up = false;
+int g_speed_multiplier = 0; // multiplier for closed-loop linear velocity
+int g_omega_multiplier = 0; //multiplier for closed-loop rotational velocity
+bool g_backing_up = false; //bool for whether or not we are backing up
 
 
 //utility fnc to compute min dang, accounting for periodicity
@@ -53,7 +53,7 @@ double convertPlanarQuat2Phi(geometry_msgs::Quaternion quaternion) {
     double phi = 2.0 * atan2(quat_z, quat_w); // cheap conversion from quaternion to heading for planar motion
     return phi;
 }
-//simply copy the desired twist and republish it to cmd_vel
+// determine the desired state
 void desStateCallback(const nav_msgs::Odometry& des_state) {
     geometry_msgs::Twist twist = des_state.twist.twist;
     g_pub_twist = twist;
@@ -63,23 +63,26 @@ void desStateCallback(const nav_msgs::Odometry& des_state) {
     g_des_vel = des_state.twist.twist.linear.x;
     g_des_omega = des_state.twist.twist.angular.z;
 }
+//determine the current state
 void currStateCallback(const nav_msgs::Odometry& curr_state){
     geometry_msgs::Twist twist = curr_state.twist.twist;
     g_curr_x = curr_state.pose.pose.position.x;
     g_curr_y = curr_state.pose.pose.position.y;
     g_curr_phi = convertPlanarQuat2Phi(curr_state.pose.pose.orientation);
 }
-
+//using the mode
 void desModeCallback(const std_msgs::Int8& des_mode) {
+    //start off with 0 multiplyiers for all both rotational (omega) and linear (speed) velocities
     g_omega_multiplier = 0;
     g_speed_multiplier = 0;
+    //if the mode is forward motion, change linear velocity multiplier to 1 and keep rotational velocity multiplier 0
     if(des_mode.data == 0)
        g_speed_multiplier = 1;
     else{
-        if(des_mode.data == 1)
+        if(des_mode.data == 1) // //if the mode is rotational motion, change rotational velocity multiplier to 1 and keep linear velocity multiplier 0
             g_omega_multiplier = 1;
         else{
-            if(des_mode.data == 2)
+            if(des_mode.data == 2) //if the mode is to back-up, then set the backing up boolean to true and negate the linear velocity - do not change the multipliers as we are not using closed-loop control
                 g_backing_up = true;
                 g_pub_twist.linear.x = -1*g_des_vel;
         }
@@ -144,7 +147,7 @@ void closed_loop_control(){
     
     //g_pub_twist.linear.x = 0.0;
     //g_pub_twist.angular.z = 0.0;
-    // send out our very clever speed/spin commands:
+    // send out our very clever speed/spin commands (note we are using the multipliers for mode setting):
     //if(g_des_mode == 1)
         g_pub_twist.angular.z = g_omega_multiplier*controller_omega;
    // else if(g_des_mode == 0)
@@ -176,7 +179,7 @@ int main(int argc, char **argv) {
     while(ros::ok()){
         
         ros::spinOnce();
-        if(g_backing_up == false)
+        if(g_backing_up == false) //If are backing up, use open-loop control. Else, use closed-loop control.
             closed_loop_control();
         // if g_backing_up is true, we just need open loop control so no need to modify g_pub_twist
         g_twist_publisher.publish(g_pub_twist);
