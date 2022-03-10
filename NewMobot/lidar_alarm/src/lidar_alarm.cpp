@@ -20,7 +20,7 @@ double radius = 1;  // can be tuned
 double stopping_distance = 0.35; //can be tuned
 double detect_length = stopping_distance + tolerance; //replaced MIN_SAFE_DISTANCE with this
 double detect_width = radius + tolerance;
-int num_rays;
+int num_rays; //the number of rays we are detecting
 
 ros::Publisher lidar_alarm_publisher_;
 ros::Publisher lidar_dist_publisher_;
