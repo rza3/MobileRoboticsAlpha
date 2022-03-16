@@ -122,11 +122,11 @@ int main(int argc, char** argv)
     
     ROS_INFO("warm up callbacks: ");
     ROS_INFO("waiting on amcl: ");
-    while (!g_amcl_good) {
+    /*while (!g_amcl_good) {
         ROS_ERROR("G_AMCL IS NOT GOOD");
         ros::spinOnce();
         ros::Duration(0.1).sleep();
-            }
+            }*/
         
     pose_estimate.header.stamp = ros::Time::now();
     pose_estimate.pose.position.x = x_amcl;
@@ -144,6 +144,10 @@ int main(int argc, char** argv)
         ros::spinOnce();
         ros::Duration(0.1).sleep();        
     }
+    x_amcl = g_current_odom.pose.pose.position.x;
+    y_amcl = g_current_odom.pose.pose.position.y;
+    geometry_msgs::Quaternion  state_quat = g_current_odom.pose.pose.orientation;
+    g_amcl_yaw = xform_utils.convertPlanarQuat2Phi(state_quat);
     double dang_amcl=0;
     double dang_odom=0;
     double dx_odom,dy_odom;
@@ -214,7 +218,8 @@ int main(int argc, char** argv)
         pose_estimate.pose.orientation = quat_est;
 
         current_state.header.stamp = ros::Time::now();
-        current_state.pose.pose = pose_estimate.pose;
+        current_state.pose.pose = pose_estimate.pose; 
+
         localization_publisher.publish(current_state);
 
         timer.sleep();

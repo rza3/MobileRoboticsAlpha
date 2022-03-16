@@ -51,7 +51,7 @@ void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
        if (ping_dist_in_front_<detect_length) {
            //ROS_WARN("DANGER, WILL ROBINSON!!");
            //ROS_INFO("Pos side %i", index);
-           laser_alarm_=true;
+           //laser_alarm_=true;
         } else {
        	    //laser_alarm_=false;
    	    }
@@ -60,7 +60,7 @@ void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
         if (ping_dist_in_front_<detect_length) {
         	//ROS_WARN("DANGER, WILL ROBINSON!!");
         	//ROS_INFO("Neg side %i", index);
-       	    laser_alarm_=true;
+       	    //laser_alarm_=true;
    	    } else {
        	    //laser_alarm_=false;
    	    }
