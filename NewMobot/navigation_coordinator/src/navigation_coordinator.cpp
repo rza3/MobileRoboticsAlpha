@@ -4,6 +4,8 @@
 #include <math.h>
 #include <std_msgs/Int32.h>
 
+
+
 int main(int argc, char **argv){
     ros::init(argc, argv, "navigation_coordinator");
     ros::NodeHandle n;
@@ -106,15 +108,27 @@ int main(int argc, char **argv){
     
     */
 
-    /* Very simple motion for debugging des_state_service.cpp*/
-    int numGoals = 7; 
-    double x[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    double y[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-    double psi[] = {0.0, 1.57, 3.14, 4.71, 6.28, 0.0, 0.434};
-    int mode[] = {1, 1, 1, 1, 1, 1,1};
+    //Very simple motion for debugging des_state_service.cpp
+    int numGoals = 10; 
+    double x[] =  {0.0, 0.0, 0.0,   0.0, 0.0, 0.0,   0.0,0.0,0.7,0.7};
+    double y[] =  {0.0, 0.0, 0.0,   0.0, 0.0, 0.0,   0.0,0.0,0.7,0.7};
+    double psi[] ={0.0, 1.57, 3.14, 4.71, 6.28, 0.0, 0.0,0.785,0.785,0};
+    int mode[] =  {1,   1,    1,     1,    1,    1,  0,  1,     0,   1 };
+
+    /*Simplifying full trajectory for debugging
+    int numGoals = 27;
+    double x[] =   {0.0, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.000, 0.825, 0.825, 3.000, 3.200, 3.000, 3.000, 3.000, 0.700, 0.700, 0.700, 0.700, 0.700,  0.700, 0.700,  0.700, 0.700, 0.000, 0.000, 0.000 };
+    double y[] =   {0.0, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.000, 0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 0.584, 1.464, 2.170, 1.464,  1.464, 1.464,  0.000, 0.000, 0.000, 0.000, 0.000 };
+    double psi[] = {0.0, 0.00, 1.57, 3.14, 4.71, 6.28, 0.00, 0.434, 0.434, 0.000, 0.000, 0.000, 0.000, 1.57, 3.142,  3.142, 1.571, 1.571, 1.571, 1.571,  0,    -1.571, -1.571, 3.142, 3.142, 1.571, 0.000 };
+    int mode[] =   {-1,  0,      1,   1,    1,    1,    1,     1,     0,     1,     0,     0,     2,     1,    1,      0,     1,     0,     0,     2,      1,     1,      0,     1,     0,      1,    1     };
+    */
     
-    
-    
+    // Simple forward motion
+    /*int numGoals = 4; 
+    double x[] = {0.0, 0.0, 0.0, 1.0, 2.0};
+    double y[] = {0.0, 0.0, 0.0, 0.0, 0.0};
+    double psi[] = {0.0, 0.4, 0.0, 0.0, 0.0};
+    int mode[] = {0, 1, 1, 0, 0};*/
     
     //double sample_dt = 0.02;
     double sample_dt = 0.01;
