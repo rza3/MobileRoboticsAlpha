@@ -13,11 +13,12 @@ geometry_msgs::Twist g_halt_twist;
 nav_msgs::Odometry g_end_state;
 nav_msgs::Odometry g_start_state;
 geometry_msgs::PoseStamped g_start_pose;
+geometry_msgs::PoseStamped g_traj_start_pose;
 geometry_msgs::PoseStamped g_end_pose;
 
 double g_dt= 0.005; //half of current state dt
 ros::Publisher g_des_state_publisher;
-ros::Publisher g_des_psi_publisher;
+//ros::Publisher g_des_psi_publisher;
 ros::Publisher g_des_mode_publisher;
 //ros::Publisher g_des_mode1_publisher;
 //ros::Publisher g_des_mode0_publisher;
@@ -54,6 +55,9 @@ void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
         ROS_INFO("LIDAR alarm detected");
     }
 }
+void setTrajStartPose(){
+    g_traj_start_pose = g_start_pose;
+}
 bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_publisher_service::NavSrvResponse& response)
 {
         //ROS_INFO("callback_activated");
@@ -70,7 +74,9 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         ros::Rate looprate(1 / g_dt); //timer for fixed publication rate   
         TrajBuilder trajBuilder; //instantiate one of these
         trajBuilder.set_dt(g_dt); //make sure trajectory builder and main use the same time step
-        trajBuilder.set_alpha_max(1.0);
+        trajBuilder.set_alpha_max(0.2);
+        trajBuilder.set_speed_max(0.5);
+        trajBuilder.set_omega_max(0.5);
         //hard code two poses; more generally, would get poses from a nav_msgs/Path message.
         /*double psi_start = 0.0;// what is the start point should be??
         double psi_end = pose_psi;
@@ -84,7 +90,8 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         g_start_pose.pose.position.y = 0.0;
         g_start_pose.pose.position.z = 0.0;
         g_start_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(psi_start);*/
-        g_end_pose = g_start_pose; //includes copying over twist with all zeros
+        setTrajStartPose();
+        g_end_pose = g_traj_start_pose; //includes copying over twist with all zeros
         //don't really care about orientation, since this will follow from 
         // point-and-go trajectory; 
         //if (pose_mode==1){
@@ -112,23 +119,23 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
        }
         
         
-        double des_psi;
-        std_msgs::Float64 psi_msg;
+        //double des_psi;
+        //std_msgs::Float64 psi_msg;
         std::vector<nav_msgs::Odometry> vec_of_states;
          //trajBuilder.build_triangular_spin_traj(g_start_pose,g_end_pose,vec_of_states);
         //trajBuilder.build_point_and_go_traj(g_start_pose, g_end_pose, vec_of_states);
 
         nav_msgs::Odometry des_state;
-        nav_msgs::Odometry last_state;
-        geometry_msgs::PoseStamped last_pose;
+        //nav_msgs::Odometry last_state;
+        //geometry_msgs::PoseStamped last_pose;
 
         //while (ros::ok()) {
         //ROS_INFO("building traj from start to end");
         //trajBuilder.build_point_and_go_traj(g_start_pose, g_end_pose, vec_of_states);
         if(pose_mode == 1)
-            trajBuilder.build_spin_traj(g_start_pose, g_end_pose, vec_of_states);
+            trajBuilder.build_spin_traj(g_traj_start_pose, g_end_pose, vec_of_states);
         else
-            trajBuilder.build_travel_traj(g_start_pose, g_end_pose, vec_of_states);
+            trajBuilder.build_travel_traj(g_traj_start_pose, g_end_pose, vec_of_states);
         // Test if this works for backing up.
         //ROS_INFO("publishing desired states ");
         for (int i = 0; i < vec_of_states.size(); i++) {
@@ -144,9 +151,9 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             //g_des_mode0_publisher.publish(pose_mode0);
             looprate.sleep(); //sleep for defined sample period, then do loop again
         }
-        last_state = vec_of_states.back();
-        g_start_pose.header = last_state.header;
-        g_start_pose.pose = last_state.pose.pose;
+        //last_state = vec_of_states.back();
+        //g_start_pose.header = last_state.header;
+        //g_start_pose.pose = last_state.pose.pose;
         //ROS_INFO("publishing desired states12345678 ");
 
     //}
@@ -178,8 +185,9 @@ int main (int argc, char **argv)
     g_current_state_subscriber = n.subscribe("/current_state",1,currStateCallback);
     g_lidar_alarm_subscriber = n.subscribe("lidar_alarm",1,lidarAlarmCallback);
     ros::ServiceServer service = n.advertiseService("des_pose_service",callback);
+    //trajectory building
     g_des_state_publisher = n.advertise<nav_msgs::Odometry>("/desState", 1);
-    g_des_psi_publisher = n.advertise<std_msgs::Float64>("/desPsi", 1);
+    //g_des_psi_publisher = n.advertise<std_msgs::Float64>("/desPsi", 1);
     g_des_mode_publisher = n.advertise<std_msgs::Int8>("/desMode",1); // publish desired mode on a separate topic
     //g_des_mode1_publisher = n.advertise<std_msgs::Bool>("/des_mode1",1);
     //g_des_mode0_publisher = n.advertise<std_msgs::Bool>("/des_mode0",1);

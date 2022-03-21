@@ -92,7 +92,7 @@ int main(int argc, char **argv){
 
     // For debugging set x,y,psi, mode, and numGoals to any of the above sections to see which works and where the errors are.
     
-    /*Initialize, localize, move diagonal, go to first table, go back, go to left table, go back to origin (full motion)*/
+    /*Initialize, localize, move diagonal, go to first table, go back, go to left table, go back to origin (full motion)
     int numGoalsBackOrigin = 6;
     double xBackOrigin[] =   {0.308,  0.308,  0.308, 0.308, 0.000, 0.000};
     double yBackOrigin[] =   {1.864,  1.864,  0.000, 0.000, 0.000, 0.000};
@@ -104,7 +104,14 @@ int main(int argc, char **argv){
     double psi[] = {0.0, 0.00, 0.78, 1.57, 2.36, 3.14, 3.93,  4.71,   5.50, 0.00, 0.00, 0.00, 0.434, 0.434, 0.000, 0.000, 0.000, 0.000, 1.047, 2.094, 3.142, 3.142, 1.571, 1.571, 1.571, 1.571,  0.780, 0.000, -0.780, -1.571, -1.571, 3.142, 3.142,1.571, 0.000 };
     int mode[] =   {-1,  0,    1,    1,    1,    1,    1,       1,    1,    1,    0,    2,    1,     0,     1,     0,     0,     2,     1,     1,     1,     0,     1,     0,     0,     2,      1,      1,       1,     1,     0,     1,     0,      1,    1     };
     
-    
+    */
+
+    /* Very simple motion for debugging des_state_service.cpp*/
+    int numGoals = 7; 
+    double x[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    double y[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+    double psi[] = {0.0, 1.57, 3.14, 4.71, 6.28, 0.0, 0.434};
+    int mode[] = {1, 1, 1, 1, 1, 1,1};
     
     
     
