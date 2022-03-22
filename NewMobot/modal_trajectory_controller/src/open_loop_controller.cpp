@@ -53,6 +53,8 @@ double convertPlanarQuat2Phi(geometry_msgs::Quaternion quaternion) {
     double phi = 2.0 * atan2(quat_z, quat_w); // cheap conversion from quaternion to heading for planar motion
     return phi;
 }
+//publish and plot g_des_phi and g_curr_phi
+// publish delta_psi (delta heading) should not have jumps. 
 // determine the desired state
 void desStateCallback(const nav_msgs::Odometry& des_state) {
     geometry_msgs::Twist twist = des_state.twist.twist;
