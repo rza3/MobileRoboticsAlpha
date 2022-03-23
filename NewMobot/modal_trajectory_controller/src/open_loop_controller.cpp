@@ -3,6 +3,9 @@
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>
+#include <traj_builder/traj_builder.h> 
+#include <nav_msgs/Odometry.h>
+
 
 
 /*#include "mode_srv/ModeSrv.h"*/
@@ -18,6 +21,7 @@ double g_curr_phi = 0.0;
 double g_des_vel = 0;
 double g_des_omega = 0;
 geometry_msgs::Twist g_pub_twist;
+geometry_msgs::PoseStamped g_start_pose;
 double K_TRIP_DIST = 1.0;
 double K_PHI = 1.0;
 double K_DISP = 1.0;
@@ -26,6 +30,9 @@ double MAX_OMEGA = 0.5; // 0.5 rad/sec corresponds to 1.5 rad in 3 sec so 90 deg
 int g_speed_multiplier = 0; // multiplier for closed-loop linear velocity
 int g_omega_multiplier = 0; //multiplier for closed-loop rotational velocity
 bool g_backing_up = false; //bool for whether or not we are backing up
+bool g_lidar_alarm = true;
+int g_pose_mode;
+double g_dt = 0.001;
 
 
 //utility fnc to compute min dang, accounting for periodicity
@@ -71,12 +78,25 @@ void currStateCallback(const nav_msgs::Odometry& curr_state){
     g_curr_x = curr_state.pose.pose.position.x;
     g_curr_y = curr_state.pose.pose.position.y;
     g_curr_phi = convertPlanarQuat2Phi(curr_state.pose.pose.orientation);
+    g_start_pose.pose.position.x = curr_state.pose.pose.position.x;
+    g_start_pose.pose.position.y = curr_state.pose.pose.position.y;
+    g_start_pose.pose.orientation = curr_state.pose.pose.orientation;
+}
+void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
+    if(g_start_pose.pose.position.x<2.6 && g_start_pose.pose.position.y<1.7)
+        g_lidar_alarm = alarm_msg.data;
+    else
+        g_lidar_alarm = false; //if we are near the tables, ignore lidar alarm
+    if(g_lidar_alarm){
+        ROS_INFO("LIDAR alarm detected");
+    }
 }
 //using the mode
 void desModeCallback(const std_msgs::Int8& des_mode) {
     //start off with 0 multiplyiers for all both rotational (omega) and linear (speed) velocities
     g_omega_multiplier = 0;
     g_speed_multiplier = 0;
+    g_pose_mode = des_mode.data;
     //if the mode is forward motion, change linear velocity multiplier to 1 and keep rotational velocity multiplier 0
     if(des_mode.data == 0)
        g_speed_multiplier = 1;
@@ -162,10 +182,14 @@ void closed_loop_control(){
 int main(int argc, char **argv) {
     ros::init(argc, argv, "open_loop_controller"); 
     ros::NodeHandle n; // two lines to create a publisher object that can talk to ROS
+    ros::Subscriber g_lidar_alarm_subscriber = n.subscribe("lidar_alarm",1,lidarAlarmCallback);
+    ros::Subscriber curr_state_subscriber = n.subscribe("/current_state",1,currStateCallback);
     ros::Subscriber des_state_subscriber = n.subscribe("/desState",1,desStateCallback); 
-    ros::Subscriber curr_state_subscriber = n.subscribe("/current_state",1,currStateCallback); 
+     
     ros::Subscriber mode_subscriber = n.subscribe("/desMode",1,desModeCallback); 
     g_twist_publisher = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    ros::Publisher had_lidar_alarm_publisher = n.advertise<std_msgs::Bool>("/controller_lidar",1);
+    std_msgs::Bool had_lidar_alarm_msg;
     
     //ros::Subscriber mode_0_subscriber = n.subscribe("/des_mode0",1,desMode0Callbaccurr_state_subscriberk); 
     /*ros::ServiceClient client = n.ServiceClient<mode_srv::ModeSrv>("mode_determining_service");
@@ -181,10 +205,54 @@ int main(int argc, char **argv) {
     while(ros::ok()){
         
         ros::spinOnce();
-        if(g_backing_up == false) //If are backing up, use open-loop control. Else, use closed-loop control.
-            closed_loop_control();
+        if(!g_lidar_alarm){
+            if(g_backing_up == false) //If are backing up, use open-loop control. Else, use closed-loop control.
+                closed_loop_control();
         // if g_backing_up is true, we just need open loop control so no need to modify g_pub_twist
-        g_twist_publisher.publish(g_pub_twist);
+            g_twist_publisher.publish(g_pub_twist);
+            had_lidar_alarm_msg.data = false;
+            had_lidar_alarm_publisher.publish(had_lidar_alarm_msg);
+        }
+        else{
+            // If there is a lidar alarm
+            TrajBuilder trajBuilder;
+             ros::Rate looprate(1 / g_dt); //timer for fixed publication rate   
+            trajBuilder.set_dt(g_dt); //make sure trajectory builder and main use the same time step
+            trajBuilder.set_alpha_max(0.2);
+            trajBuilder.set_speed_max(0.5);
+            trajBuilder.set_omega_max(0.5);
+            std::vector<nav_msgs::Odometry> vec_of_states;
+            nav_msgs::Odometry des_state;
+            if(g_pose_mode == 1)
+                trajBuilder.build_spin_traj(g_start_pose, g_start_pose, vec_of_states);
+            else
+                trajBuilder.build_travel_traj(g_start_pose, g_start_pose, vec_of_states);
+        // Test if this works for backing up.
+        //ROS_INFO("publishing desired states ");
+        for (int i = 0; i < vec_of_states.size(); i++) {
+            des_state = vec_of_states[i];
+            g_pub_twist = des_state.twist.twist;
+            g_des_x = des_state.pose.pose.position.x;
+            g_des_y = des_state.pose.pose.position.y;
+            g_des_phi = convertPlanarQuat2Phi(des_state.pose.pose.orientation);
+            g_des_vel = des_state.twist.twist.linear.x;
+            g_des_omega = des_state.twist.twist.angular.z;
+            if(g_backing_up == false) //If are backing up, use open-loop control. Else, use closed-loop control.
+                closed_loop_control();
+        // if g_backing_up is true, we just need open loop control so no need to modify g_pub_twist
+            g_twist_publisher.publish(g_pub_twist);
+            
+            looprate.sleep(); //sleep for defined sample period, then do loop again
+        }
+        had_lidar_alarm_msg.data = true;
+        had_lidar_alarm_publisher.publish(had_lidar_alarm_msg);
+        //last_state = vec_of_states.back();
+        //g_start_pose.header = last_state.header;
+        //g_start_pose.pose = last_state.pose.pose;
+        //
+            
+
+        }
         /*if(g_des_vel - g_pub_twist.linear.x != 0)
             ROS_ERROR("x error of %f",g_des_vel - g_pub_twist.linear.x);
         if(g_des_omega - g_pub_twist.angular.z != 0)
