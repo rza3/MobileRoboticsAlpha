@@ -16,9 +16,10 @@ geometry_msgs::PoseStamped g_start_pose;
 geometry_msgs::PoseStamped g_traj_start_pose;
 geometry_msgs::PoseStamped g_end_pose;
 
-double g_dt= 0.005; //half of current state dt
+//double g_dt= 0.005; //half of current state dt
+double g_dt = 0.001;
 ros::Publisher g_des_state_publisher;
-//ros::Publisher g_des_psi_publisher;
+ros::Publisher g_des_psi_publisher;
 ros::Publisher g_des_mode_publisher;
 ros::Subscriber g_lidar_alarm_subscriber;
 ros::Publisher g_start_pose_publisher;
@@ -120,8 +121,8 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
        }
         
         
-        //double des_psi;
-        //std_msgs::Float64 psi_msg;
+        double des_psi;
+        std_msgs::Float64 psi_msg;
         std::vector<nav_msgs::Odometry> vec_of_states;
          //trajBuilder.build_triangular_spin_traj(g_start_pose,g_end_pose,vec_of_states);
         //trajBuilder.build_point_and_go_traj(g_start_pose, g_end_pose, vec_of_states);
@@ -143,9 +144,9 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             des_state = vec_of_states[i];
             des_state.header.stamp = ros::Time::now();
             g_des_state_publisher.publish(des_state);
-            //des_psi = trajBuilder.convertPlanarQuat2Psi(des_state.pose.pose.orientation);
-            //psi_msg.data = des_psi;
-            //g_des_psi_publisher.publish(psi_msg);
+            des_psi = trajBuilder.convertPlanarQuat2Psi(des_state.pose.pose.orientation);
+            psi_msg.data = des_psi;
+            g_des_psi_publisher.publish(psi_msg);
 //            ROS_WARN("MODE IS [%i]",mode_msg.data);
             g_des_mode_publisher.publish(mode_msg);
             //g_des_mode1_publisher.publish(pose_mode1);
@@ -177,7 +178,7 @@ int main (int argc, char **argv)
     ros::ServiceServer service = n.advertiseService("des_pose_service",callback);
     //trajectory building
     g_des_state_publisher = n.advertise<nav_msgs::Odometry>("/desState", 1);
-    //g_des_psi_publisher = n.advertise<std_msgs::Float64>("/desPsi", 1);
+    g_des_psi_publisher = n.advertise<std_msgs::Float64>("/desPsi", 1);
     g_des_mode_publisher = n.advertise<std_msgs::Int8>("/desMode",1); // publish desired mode on a separate topic
     //g_des_mode1_publisher = n.advertise<std_msgs::Bool>("/des_mode1",1);
     //g_des_mode0_publisher = n.advertise<std_msgs::Bool>("/des_mode0",1);
