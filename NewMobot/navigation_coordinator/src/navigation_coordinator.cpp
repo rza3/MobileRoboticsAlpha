@@ -70,7 +70,7 @@ int main(int argc, char **argv){
         //ROS_INFO("i is %i",i);
         //i++;
         if (client.call(pose_srv) && ros::ok()){
-            while(pose_srv.response.alarm || pose_srv.response.failed)
+            while((pose_srv.response.alarm || pose_srv.response.failed)&&client.call(pose_srv))
                ros::spinOnce();
             ros::spinOnce();
             if(!g_controller_lidar){
