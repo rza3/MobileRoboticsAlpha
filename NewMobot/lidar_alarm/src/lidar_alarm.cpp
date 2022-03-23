@@ -64,8 +64,8 @@ void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
    	    } else {
        	    //laser_alarm_=false;
    	    }
-   	if(index ==0)
-   		ROS_INFO("Index 0");
+   	//if(index ==0)
+   		//ROS_INFO("Index 0");
    	
    }
    

@@ -2,6 +2,9 @@ float64 x
 float64 y
 float64 psi
 int64 mode
+float64 x_curr
+float64 y_curr
+float64 psi_curr
 --- 
 bool alarm
 bool failed

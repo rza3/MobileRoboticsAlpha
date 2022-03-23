@@ -143,8 +143,8 @@ void closed_loop_control(){
     controller_speed = g_des_vel + K_TRIP_DIST*trip_dist_err; //speed up/slow down to null out 
     //controller_omega = des_state_omega_; //ditto
     controller_omega = g_des_omega + K_PHI*heading_err + K_DISP*lateral_err;
-    if(controller_omega>=MAX_OMEGA)
-        ROS_WARN("Saturated Omega");
+   /* if(controller_omega>=MAX_OMEGA)
+        ROS_WARN("Saturated Omega");*/
     controller_omega = MAX_OMEGA*sat(controller_omega/MAX_OMEGA); // saturate omega command at specified limits
     
     //g_pub_twist.linear.x = 0.0;
