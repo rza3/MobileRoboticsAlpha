@@ -5,7 +5,8 @@
 #include <std_msgs/Int32.h>
 #include <nav_msgs/Odometry.h>
 
-double stop_time = 0.5; //time to stop if get lidar alarm
+double stop_distance = 0.25; //x,y distance to stop if get lidar alarm
+double stop_distance_phi = 0.25; // same for phi
 bool g_controller_lidar = true;
 double g_curr_x = 0.0;
 double g_curr_y = 0.0;
@@ -72,16 +73,23 @@ int main(int argc, char **argv){
         if (client.call(pose_srv) && ros::ok()){
             while((pose_srv.response.alarm || pose_srv.response.failed)&&client.call(pose_srv))
                 if(pose_srv.response.alarm){
-                    //If had alarm from somewhere - set next goal pose to be the same as current pose plus where we will be in the next stop_time
+                    //If had alarm from somewhere - set next goal pose to be stop_dist ahead
                     ros::spinOnce(); //make sure we do not try to go backwards
-                    pose_srv.request.x = g_curr_x;
-                    pose_srv.request.y = g_curr_y;
-                    pose_srv.request.psi = g_curr_psi;
+                    if(mode[i]!=1){
+                        pose_srv.request.x = g_curr_x + stop_distance*cosf(g_curr_psi);
+                        pose_srv.request.y = g_curr_y + stop_distance*sinf(g_curr_psi);
+                        pose_srv.request.psi = g_curr_psi
+                    }
+                    else{
+                        pose_srv.request.x = g_curr_x;
+                        pose_srv.request.y = g_curr_y;
+                        pose_srv.request.psi = g_curr_psi + stop_distance_phi;
+                    }
                     pose_srv.request.x_curr = g_curr_x;
                     pose_srv.request.y_curr = g_curr_y;
                     pose_srv.request.psi_curr = g_curr_psi;
                     pose_srv.request.mode = mode[i];
-                    
+                    client.call(pose_srv)
                 }
                ros::spinOnce();
             ros::spinOnce();
