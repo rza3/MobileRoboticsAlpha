@@ -5,7 +5,7 @@
 #include <std_msgs/Int32.h>
 #include <nav_msgs/Odometry.h>
 
-
+double stop_time = 0.5; //time to stop if get lidar alarm
 bool g_controller_lidar = true;
 double g_curr_x = 0.0;
 double g_curr_y = 0.0;
@@ -71,6 +71,18 @@ int main(int argc, char **argv){
         //i++;
         if (client.call(pose_srv) && ros::ok()){
             while((pose_srv.response.alarm || pose_srv.response.failed)&&client.call(pose_srv))
+                if(pose_srv.response.alarm){
+                    //If had alarm from somewhere - set next goal pose to be the same as current pose plus where we will be in the next stop_time
+                    ros::spinOnce(); //make sure we do not try to go backwards
+                    pose_srv.request.x = g_curr_x;
+                    pose_srv.request.y = g_curr_y;
+                    pose_srv.request.psi = g_curr_psi;
+                    pose_srv.request.x_curr = g_curr_x;
+                    pose_srv.request.y_curr = g_curr_y;
+                    pose_srv.request.psi_curr = g_curr_psi;
+                    pose_srv.request.mode = mode[i];
+                    
+                }
                ros::spinOnce();
             ros::spinOnce();
             if(!g_controller_lidar){
