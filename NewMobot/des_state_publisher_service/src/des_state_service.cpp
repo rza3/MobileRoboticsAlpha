@@ -6,6 +6,7 @@
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>
+#include "modal_trajectory_controller/ControllerSrv.h"
 
 
 
