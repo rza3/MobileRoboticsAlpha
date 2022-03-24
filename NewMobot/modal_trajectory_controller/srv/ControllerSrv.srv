@@ -1,0 +1,9 @@
+float64 x
+float64 y
+float64 psi
+float64 velocity
+float 64 omega
+int64 mode
+--- 
+bool alarm
+bool failed

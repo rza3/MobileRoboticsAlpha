@@ -140,6 +140,8 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             trajBuilder.build_travel_traj(g_start_pose, g_end_pose, vec_of_states);
         // Test if this works for backing up.
         //ROS_INFO("publishing desired states ");
+        client.waitForExistence();
+        int i = 0;
         for (int i = 0; i < vec_of_states.size(); i++) {
             des_state = vec_of_states[i];
             des_state.header.stamp = ros::Time::now();
@@ -151,6 +153,12 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             g_des_mode_publisher.publish(mode_msg);
             //g_des_mode1_publisher.publish(pose_mode1);
             //g_des_mode0_publisher.publish(pose_mode0);
+            pose_srv.request.x = des_state.pose.pose.position.x;
+            pose_srv.request.y = des_state.pose.pose.position.x;
+            pose_srv.request.psi = des_psi;
+            pose_srv.request.velocity = des_state.twist.twist.linear.x;
+            pose_srv.request.omega = des_state.twist.twist.angular.z;
+            pose_srv.request.mode = mode_msg.data;
             looprate.sleep(); //sleep for defined sample period, then do loop again
         }
         //last_state = vec_of_states.back();
@@ -180,6 +188,8 @@ int main (int argc, char **argv)
     g_des_state_publisher = n.advertise<nav_msgs::Odometry>("/desState", 1);
     g_des_psi_publisher = n.advertise<std_msgs::Float64>("/desPsi", 1);
     g_des_mode_publisher = n.advertise<std_msgs::Int8>("/desMode",1); // publish desired mode on a separate topic
+    ros::ServiceClient client = n.serviceClient<des_state_publisher_service::NavSrv>("controller_service");
+    modal_trajectory_controller::ControllerSrv pose_srv;
     //g_des_mode1_publisher = n.advertise<std_msgs::Bool>("/des_mode1",1);
     //g_des_mode0_publisher = n.advertise<std_msgs::Bool>("/des_mode0",1);
     g_start_pose_publisher = n.advertise<geometry_msgs::PoseStamped>("/start_pose",1);

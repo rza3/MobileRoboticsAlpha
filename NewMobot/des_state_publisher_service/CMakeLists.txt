@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   message_generation
+  modal_trajectory_controller
 )
 
 add_service_files (FILES NavSrv.srv)
