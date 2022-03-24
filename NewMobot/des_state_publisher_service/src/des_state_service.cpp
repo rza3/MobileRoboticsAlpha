@@ -142,7 +142,8 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         //ROS_INFO("publishing desired states ");
         client.waitForExistence();
         int i = 0;
-        for (int i = 0; i < vec_of_states.size(); i++) {
+        bool controller_lidar_alarm = false;
+        for (while i < vec_of_states.size() && !controller_lidar_alarm) {
             des_state = vec_of_states[i];
             des_state.header.stamp = ros::Time::now();
             g_des_state_publisher.publish(des_state);
@@ -159,6 +160,8 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             pose_srv.request.velocity = des_state.twist.twist.linear.x;
             pose_srv.request.omega = des_state.twist.twist.angular.z;
             pose_srv.request.mode = mode_msg.data;
+            client.call(pose_srv)
+            no_lidar_alarm = pose_srv.response.alarm;
             looprate.sleep(); //sleep for defined sample period, then do loop again
         }
         //last_state = vec_of_states.back();
@@ -170,7 +173,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         response.alarm = false;
         response.failed = false;
 
-        if(g_lidar_alarm){
+        if(g_lidar_alarm || no_liar_alarm){
            response.alarm = true;
            response.failed = true;
        }
