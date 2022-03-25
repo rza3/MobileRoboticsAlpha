@@ -184,13 +184,13 @@ int main(int argc, char **argv) {
     ros::NodeHandle n; // two lines to create a publisher object that can talk to ROS
     ros::Subscriber g_lidar_alarm_subscriber = n.subscribe("lidar_alarm",1,lidarAlarmCallback);
     ros::Subscriber curr_state_subscriber = n.subscribe("/current_state",1,currStateCallback);
-    ros::ServiceServer service = n.advertiseService("controller_service",callback);
-    //ros::Subscriber des_state_subscriber = n.subscribe("/desState",1,desStateCallback); 
+    //ros::ServiceServer service = n.advertiseService("controller_service",callback);
+    ros::Subscriber des_state_subscriber = n.subscribe("/desState",1,desStateCallback); 
      
-    //ros::Subscriber mode_subscriber = n.subscribe("/desMode",1,desModeCallback); 
+    ros::Subscriber mode_subscriber = n.subscribe("/desMode",1,desModeCallback); 
     g_twist_publisher = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-    //ros::Publisher had_lidar_alarm_publisher = n.advertise<std_msgs::Bool>("/controller_lidar",1);
-    //std_msgs::Bool had_lidar_alarm_msg;
+    ros::Publisher had_lidar_alarm_publisher = n.advertise<std_msgs::Bool>("/controller_lidar",1);
+    std_msgs::Bool had_lidar_alarm_msg;
     
     //ros::Subscriber mode_0_subscriber = n.subscribe("/des_mode0",1,desMode0Callbaccurr_state_subscriberk); 
     /*ros::ServiceClient client = n.ServiceClient<mode_srv::ModeSrv>("mode_determining_service");
