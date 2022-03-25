@@ -5,7 +5,7 @@
 #include <std_msgs/Int8.h>
 #include <traj_builder/traj_builder.h> 
 #include <nav_msgs/Odometry.h>
-#include "modal_trajectory_controller/ControllerSrv.h"
+
 
 
 /*#include "mode_srv/ModeSrv.h"*/
@@ -63,7 +63,7 @@ double convertPlanarQuat2Phi(geometry_msgs::Quaternion quaternion) {
 //publish and plot g_des_phi and g_curr_phi
 // publish delta_psi (delta heading) should not have jumps. 
 // determine the desired state
-/*void desStateCallback(const nav_msgs::Odometry& des_state) {
+void desStateCallback(const nav_msgs::Odometry& des_state) {
     geometry_msgs::Twist twist = des_state.twist.twist;
     g_pub_twist = twist;
     g_des_x = des_state.pose.pose.position.x;
@@ -71,7 +71,7 @@ double convertPlanarQuat2Phi(geometry_msgs::Quaternion quaternion) {
     g_des_phi = convertPlanarQuat2Phi(des_state.pose.pose.orientation);
     g_des_vel = des_state.twist.twist.linear.x;
     g_des_omega = des_state.twist.twist.angular.z;
-}*/
+}
 //determine the current state
 void currStateCallback(const nav_msgs::Odometry& curr_state){
     geometry_msgs::Twist twist = curr_state.twist.twist;
@@ -92,11 +92,11 @@ void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
     }
 }
 //using the mode
-void desMode() {
+void desModeCallback(const std_msgs::Int8& des_mode) {
     //start off with 0 multiplyiers for all both rotational (omega) and linear (speed) velocities
     g_omega_multiplier = 0;
     g_speed_multiplier = 0;
-   // g_pose_mode = des_mode.data;
+    g_pose_mode = des_mode.data;
     //if the mode is forward motion, change linear velocity multiplier to 1 and keep rotational velocity multiplier 0
     if(des_mode.data == 0)
        g_speed_multiplier = 1;
@@ -110,41 +110,7 @@ void desMode() {
         }
     }
 }
-bool callback(modal_trajectory_controller::ControllerSrvRequest& request, modal_trajectory_controller::ControllerSrvResponse& response)
-{
-        //ROS_INFO("callback_activated")
-        geometry_msgs::Twist twist;
-        twist.linear.x = 0.0;
-        twist.linear.y = 0.0;
-        twist.linear.z = 0.0;
-        twist.angular.x = 0.0;
-        twist.angular.y = 0.0;
-        twist.angular.z = 0.0;
-        g_pub_twist = twist;
-        g_des_x = request.x;
-        g_des_y = request.y;
-        g_des_phi = request.phi;
-        g_des_vel = request.velocity;
-        g_des_omega = request.omega;
-        g_pose_mode = request.mode;
-        desMode();
-        if(!g_lidar_alarm){
-            if(g_backing_up == false) //If are backing up, use open-loop control. Else, use closed-loop control.
-                closed_loop_control();
-        // if g_backing_up is true, we just need open loop control so no need to modify g_pub_twist
-            g_twist_publisher.publish(g_pub_twist);
-            //had_lidar_alarm_msg.data = false;
-            //had_lidar_alarm_publisher.publish(had_lidar_alarm_msg);
-            response.alarm = false;
-            response.failed = false;
-        }
-        else{
-            // If there is a lidar alarm
-            response.alarm = true;
-            response.failed = true;
-        }
-    return true;
-}
+
 void open_loop_control(){
     //Put code for backing up open loop controller here.
 }
@@ -218,26 +184,13 @@ int main(int argc, char **argv) {
     ros::NodeHandle n; // two lines to create a publisher object that can talk to ROS
     ros::Subscriber g_lidar_alarm_subscriber = n.subscribe("lidar_alarm",1,lidarAlarmCallback);
     ros::Subscriber curr_state_subscriber = n.subscribe("/current_state",1,currStateCallback);
-<<<<<<< HEAD
     //ros::ServiceServer service = n.advertiseService("controller_service",callback);
     ros::Subscriber des_state_subscriber = n.subscribe("/desState",1,desStateCallback); 
-=======
-    
-    //ros::Subscriber des_state_subscriber = n.subscribe("/desState",1,desStateCallback); 
->>>>>>> e095a320184c099fd1b3529261c357b9985ff0b1
      
     ros::Subscriber mode_subscriber = n.subscribe("/desMode",1,desModeCallback); 
     g_twist_publisher = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-<<<<<<< HEAD
     ros::Publisher had_lidar_alarm_publisher = n.advertise<std_msgs::Bool>("/controller_lidar",1);
     std_msgs::Bool had_lidar_alarm_msg;
-=======
-    ros::ServiceServer service = n.advertiseService("controller_service",callback);
-    ros::spin();
-    return 0;
-    //ros::Publisher had_lidar_alarm_publisher = n.advertise<std_msgs::Bool>("/controller_lidar",1);
-    //std_msgs::Bool had_lidar_alarm_msg;
->>>>>>> e095a320184c099fd1b3529261c357b9985ff0b1
     
     //ros::Subscriber mode_0_subscriber = n.subscribe("/des_mode0",1,desMode0Callbaccurr_state_subscriberk); 
     /*ros::ServiceClient client = n.ServiceClient<mode_srv::ModeSrv>("mode_determining_service");
@@ -250,7 +203,7 @@ int main(int argc, char **argv) {
     }*/
 
     //ros::spin();
-   /* while(ros::ok()){
+    while(ros::ok()){
         
         ros::spinOnce();
         if(!g_lidar_alarm){
@@ -291,21 +244,20 @@ int main(int argc, char **argv) {
             g_twist_publisher.publish(g_pub_twist);
             
             looprate.sleep(); //sleep for defined sample period, then do loop again
-        }*/
-        //had_lidar_alarm_msg.data = true;
-        //had_lidar_alarm_publisher.publish(had_lidar_alarm_msg);
+        }
+        had_lidar_alarm_msg.data = true;
+        had_lidar_alarm_publisher.publish(had_lidar_alarm_msg);
         //last_state = vec_of_states.back();
         //g_start_pose.header = last_state.header;
         //g_start_pose.pose = last_state.pose.pose;
         //
             
 
-        //}
+        }
         /*if(g_des_vel - g_pub_twist.linear.x != 0)
             ROS_ERROR("x error of %f",g_des_vel - g_pub_twist.linear.x);
         if(g_des_omega - g_pub_twist.angular.z != 0)
             ROS_ERROR("vel error of %f",g_des_omega - g_pub_twist.angular.z );*/
-    //}
-    
+    }
 }
 
