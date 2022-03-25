@@ -6,6 +6,7 @@
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>
+#include "modal_trajectory_controller/ControllerSrv.h"
 
 
 
@@ -140,7 +141,14 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             trajBuilder.build_travel_traj(g_start_pose, g_end_pose, vec_of_states);
         // Test if this works for backing up.
         //ROS_INFO("publishing desired states ");
+<<<<<<< HEAD
         for (int i = 0; i < vec_of_states.size(); i++) {
+=======
+        client.waitForExistence();
+        int i = 0;
+        bool controller_lidar_alarm = false;
+        for (while i < vec_of_states.size() && !controller_lidar_alarm) {
+>>>>>>> e095a320184c099fd1b3529261c357b9985ff0b1
             des_state = vec_of_states[i];
             des_state.header.stamp = ros::Time::now();
             g_des_state_publisher.publish(des_state);
@@ -151,7 +159,18 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             g_des_mode_publisher.publish(mode_msg);
             //g_des_mode1_publisher.publish(pose_mode1);
             //g_des_mode0_publisher.publish(pose_mode0);
+<<<<<<< HEAD
             
+=======
+            pose_srv.request.x = des_state.pose.pose.position.x;
+            pose_srv.request.y = des_state.pose.pose.position.x;
+            pose_srv.request.psi = des_psi;
+            pose_srv.request.velocity = des_state.twist.twist.linear.x;
+            pose_srv.request.omega = des_state.twist.twist.angular.z;
+            pose_srv.request.mode = mode_msg.data;
+            client.call(pose_srv)
+            no_lidar_alarm = pose_srv.response.alarm;
+>>>>>>> e095a320184c099fd1b3529261c357b9985ff0b1
             looprate.sleep(); //sleep for defined sample period, then do loop again
         }
         //last_state = vec_of_states.back();
@@ -163,7 +182,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
         response.alarm = false;
         response.failed = false;
 
-        if(g_lidar_alarm){
+        if(g_lidar_alarm || no_liar_alarm){
            response.alarm = true;
            response.failed = true;
        }
