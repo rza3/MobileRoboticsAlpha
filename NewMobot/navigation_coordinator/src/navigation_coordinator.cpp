@@ -78,7 +78,7 @@ int main(int argc, char **argv){
                     if(mode[i]!=1){
                         pose_srv.request.x = g_curr_x + stop_distance*cosf(g_curr_psi);
                         pose_srv.request.y = g_curr_y + stop_distance*sinf(g_curr_psi);
-                        pose_srv.request.psi = g_curr_psi
+                        pose_srv.request.psi = g_curr_psi;
                     }
                     else{
                         pose_srv.request.x = g_curr_x;
@@ -89,7 +89,7 @@ int main(int argc, char **argv){
                     pose_srv.request.y_curr = g_curr_y;
                     pose_srv.request.psi_curr = g_curr_psi;
                     pose_srv.request.mode = mode[i];
-                    client.call(pose_srv)
+                    client.call(pose_srv);
                 }
                ros::spinOnce();
             ros::spinOnce();
