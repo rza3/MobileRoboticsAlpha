@@ -101,6 +101,7 @@ int main(int argc, char **argv){
                 
             //ros::spin();
         }
+        ros::Duration(1).sleep();
     }
     return 0;
 }
