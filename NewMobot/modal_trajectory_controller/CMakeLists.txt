@@ -34,7 +34,10 @@ catkin_simple()
 
 #cs_add_executable(mobot_pub_des_state2 src/pub_des_state_main.cpp src/pub_des_state2.cpp)
 #cs_add_executable(mobot_pub_des_state_startup src/pub_des_state_startup_main.cpp src/pub_des_state.cpp)
+
 cs_add_executable(open_loop_controller src/open_loop_controller.cpp)
+#cs_add_executable(des_state_publisher_service src/des_state_service.cpp)
+
 #cs_add_executable(diag_open_loop_controller src/diag_open_loop_controller.cpp)
 #cs_add_executable(diag_open_loop_controller_rot src/diag_open_loop_controller_rot.cpp)
 
