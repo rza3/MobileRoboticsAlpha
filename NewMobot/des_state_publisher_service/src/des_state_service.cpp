@@ -24,6 +24,7 @@ ros::Publisher g_des_mode_publisher;
 ros::Subscriber g_lidar_alarm_subscriber;
 ros::Publisher g_start_pose_publisher;
 std_msgs::Int8 mode_msg;
+bool g_controller_lidar = true;
 
 bool g_lidar_alarm;
 
@@ -44,6 +45,9 @@ void do_inits() { //similar to a constructor
     TrajBuilder trajBuilder; //instantiate one of these
     //g_start_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(0);
         
+}
+void controllerLidarCallback(const std_msgs::Bool& alarm_msg){
+    g_controller_lidar = alarm_msg.data;
 }
 void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
     if(g_start_pose.pose.position.x<2.6 && g_start_pose.pose.position.y<1.7)
@@ -110,7 +114,7 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
        // }
     
        //unless there is a lidar alarm or we are initializing, set end pose to be the desired pose. If there is a lidar alarm or we are initializing, end pose should the same as start pose.
-       if(!g_lidar_alarm & pose_mode>-1){
+       if(!g_lidar_alarm && !g_controller_lidar && pose_mode>-1){
            g_end_pose.pose.orientation = trajBuilder.convertPlanarPsi2Quaternion(pose_psi);
            g_end_pose.pose.position.x = pose_x; 
            g_end_pose.pose.position.y = pose_y; 
@@ -145,13 +149,21 @@ bool callback(des_state_publisher_service::NavSrvRequest& request, des_state_pub
             des_state.header.stamp = ros::Time::now();
             g_des_state_publisher.publish(des_state);
             des_psi = trajBuilder.convertPlanarQuat2Psi(des_state.pose.pose.orientation);
+            if(des_psi>M_PI)
+                des_psi -= 2.0*M_PI;
+            if(des_psi<-1*M_PI)
+                des_psi += 2.0*M_PI;
             psi_msg.data = des_psi;
             g_des_psi_publisher.publish(psi_msg);
 //            ROS_WARN("MODE IS [%i]",mode_msg.data);
             g_des_mode_publisher.publish(mode_msg);
             //g_des_mode1_publisher.publish(pose_mode1);
             //g_des_mode0_publisher.publish(pose_mode0);
-            
+            if(g_controller_lidar){
+                response.alarm = false;
+                response.failed = false;
+                return true;
+            }
             looprate.sleep(); //sleep for defined sample period, then do loop again
         }
         //last_state = vec_of_states.back();
@@ -186,7 +198,8 @@ int main (int argc, char **argv)
     //g_des_mode1_publisher = n.advertise<std_msgs::Bool>("/des_mode1",1);
     //g_des_mode0_publisher = n.advertise<std_msgs::Bool>("/des_mode0",1);
     g_start_pose_publisher = n.advertise<geometry_msgs::PoseStamped>("/start_pose",1);
-    
+    ros::Subscriber controller_lidar_alarm_subscriber = n.subscribe("/controller_lidar",1,controllerLidarCallback);
+        
     
     ros::spin();
     return 0;

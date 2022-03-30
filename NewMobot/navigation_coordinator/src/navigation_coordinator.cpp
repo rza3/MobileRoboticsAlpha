@@ -34,7 +34,6 @@ int main(int argc, char **argv){
     ros::Subscriber current_state_subscriber = n.subscribe("/current_state",1,currStateCallback);
     ros::Subscriber controller_lidar_alarm_subscriber = n.subscribe("/controller_lidar",1,controllerLidarCallback);
     ros::ServiceClient client = n.serviceClient<des_state_publisher_service::NavSrv>("des_pose_service");
-    
     des_state_publisher_service::NavSrv pose_srv;
 
     //Very simple motion for debugging des_state_service.cpp - just rotate
@@ -92,12 +91,18 @@ int main(int argc, char **argv){
                     client.call(pose_srv);
                 }
                ros::spinOnce();
-            ros::spinOnce();
-            if(!g_controller_lidar){
+            //ros::spinOnce();
+            if(!g_controller_lidar && !pose_srv.response.alarm && !pose_srv.response.failed){
                 // implement a got close enough check
                 i++;
             }
-                
+            else{
+                ROS_WARN("Got lidar controller or failure, going back to last i");
+                if(g_controller_lidar)
+                    ROS_WARN("Was lidar controller");
+            }
+            if(i<7 || i == 10 || i ==16)
+                ros::Duration(5).sleep();        
                 
             //ros::spin();
         }
