@@ -97,6 +97,7 @@ void desModeCallback(const std_msgs::Int8& des_mode) {
     g_omega_multiplier = 0;
     g_speed_multiplier = 0;
     g_pose_mode = des_mode.data;
+    g_backing_up = false;
     //if the mode is forward motion, change linear velocity multiplier to 1 and keep rotational velocity multiplier 0
     if(des_mode.data == 0)
        g_speed_multiplier = 1;
@@ -159,7 +160,7 @@ void closed_loop_control(){
     //steering_errs_publisher_.publish(steering_errs_); // suitable for plotting w/ rqt_plot
     //END OF DEBUG STUFF
     
-     // do something clever with this information     
+     // do something clever with this information    
     controller_speed = g_des_vel + K_TRIP_DIST*trip_dist_err; //speed up/slow down to null out 
     //controller_omega = des_state_omega_; //ditto
     controller_omega = g_des_omega + K_PHI*heading_err + K_DISP*lateral_err;
@@ -209,6 +210,8 @@ int main(int argc, char **argv) {
         if(!g_lidar_alarm){
             if(g_backing_up == false) //If are backing up, use open-loop control. Else, use closed-loop control.
                 closed_loop_control();
+            else
+                ROS_WARN("Used open loop control");
         // if g_backing_up is true, we just need open loop control so no need to modify g_pub_twist
             g_twist_publisher.publish(g_pub_twist);
             had_lidar_alarm_msg.data = false;
