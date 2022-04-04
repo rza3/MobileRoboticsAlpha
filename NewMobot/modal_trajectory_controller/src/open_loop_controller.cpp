@@ -98,6 +98,10 @@ void lidarAlarmCallback(const std_msgs::Bool& alarm_msg){
         g_lidar_alarm = false; //if we are near the tables, ignore lidar alarm
     if(g_lidar_alarm){
         ROS_INFO("LIDAR alarm detected");
+    if(!g_lidar_alarm){
+        g_stop_distance = 0.25; //x,y distance to stop if get lidar alarm
+        g_stop_distance_phi = 0.25; // same for phi
+    }
     }
 }
 //using the mode
@@ -247,6 +251,8 @@ int main(int argc, char **argv) {
                 lidar_stop_pose.pose.position.y+= g_stop_distance*sinf(convertPlanarQuat2Phi(lidar_stop_pose.pose.orientation));
                 trajBuilder.build_travel_traj(g_start_pose, lidar_stop_pose, vec_of_states);
             }
+            g_stop_distance = 0;
+            g_stop_distance_phi = 0;
         // Test if this works for backing up.
         //ROS_INFO("publishing desired states ");
         for (int i = 0; i < vec_of_states.size(); i++) {
