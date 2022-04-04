@@ -33,7 +33,8 @@ bool g_backing_up = false; //bool for whether or not we are backing up
 bool g_lidar_alarm = true;
 int g_pose_mode;
 double g_dt = 0.001;
-
+double g_stop_distance = 0.25; //x,y distance to stop if get lidar alarm
+double g_stop_distance_phi = 0.25; // same for phi
 
 //utility fnc to compute min dang, accounting for periodicity
 double min_dang(double dang) {
@@ -59,6 +60,14 @@ double convertPlanarQuat2Phi(geometry_msgs::Quaternion quaternion) {
     double quat_w = quaternion.w;
     double phi = 2.0 * atan2(quat_z, quat_w); // cheap conversion from quaternion to heading for planar motion
     return phi;
+}
+geometry_msgs::Quaternion convertPlanarPsi2Quaternion(double psi) {
+    geometry_msgs::Quaternion quaternion;
+    quaternion.x = 0.0;
+    quaternion.y = 0.0;
+    quaternion.z = sin(psi / 2.0);
+    quaternion.w = cos(psi / 2.0);
+    return (quaternion);
 }
 //publish and plot g_des_phi and g_curr_phi
 // publish delta_psi (delta heading) should not have jumps. 
@@ -227,10 +236,15 @@ int main(int argc, char **argv) {
             trajBuilder.set_omega_max(0.5);
             std::vector<nav_msgs::Odometry> vec_of_states;
             nav_msgs::Odometry des_state;
+            geometry_msgs::PoseStamped e_stop_pose;
+            lidar_stop_pose = g_start_pose;
             if(g_pose_mode == 1)
-                trajBuilder.build_spin_traj(g_start_pose, g_start_pose, vec_of_states);
+                lidar_stop_pose.pose.pose.orientation = convertPlanarPsi2Quaternion(convertPlanarQuat2Phi(lidar_stop_pose.pose.pose.orientation) + g_stop_distance_phi);
+                trajBuilder.build_spin_traj(g_start_pose, lidar_stop_pose, vec_of_states);
             else
-                trajBuilder.build_travel_traj(g_start_pose, g_start_pose, vec_of_states);
+                lidar_stop_pose.pose.pose.position.x+= g_stop_distance*cosf(convertPlanarQuat2Phi(lidar_stop_pose.pose.pose.orientation))
+                lidar_stop_pose.pose.pose.position.y+= g_stop_distance*sinf(convertPlanarQuat2Phi(lidar_stop_pose.pose.pose.orientation))
+                trajBuilder.build_travel_traj(g_start_pose, lidar_stop_pose, vec_of_states);
         // Test if this works for backing up.
         //ROS_INFO("publishing desired states ");
         for (int i = 0; i < vec_of_states.size(); i++) {
