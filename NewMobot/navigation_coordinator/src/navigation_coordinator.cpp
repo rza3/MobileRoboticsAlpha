@@ -27,7 +27,7 @@ void currStateCallback(const nav_msgs::Odometry& curr_state){
     ROS_ERROR("Changed current states in nav coord");
 }
 void lidarCallback(const std_msgs::Bool& alarm_msg){
-    if(g_start_pose.pose.position.x<2.6 && g_start_pose.pose.position.y<1.7)
+    if(g_curr_x<2.6 && g_curr_y<1.7)
         g_lidar_alarm = alarm_msg.data;
     else
         g_lidar_alarm = false; //if we are near the tables, ignore lidar alarm
