@@ -11,6 +11,7 @@ bool g_controller_lidar = true;
 double g_curr_x = 0.0;
 double g_curr_y = 0.0;
 double g_curr_psi = 0.0;
+bool g_lidar_alarm;
 
 double convertPlanarQuat2Psi(geometry_msgs::Quaternion quaternion) {
     double quat_z = quaternion.z;
@@ -25,14 +26,20 @@ void currStateCallback(const nav_msgs::Odometry& curr_state){
     g_curr_psi = convertPlanarQuat2Psi(curr_state.pose.pose.orientation);
     ROS_ERROR("Changed current states in nav coord");
 }
-void controllerLidarCallback(const std_msgs::Bool& alarm_msg){
-    g_controller_lidar = alarm_msg.data;
+void lidarCallback(const std_msgs::Bool& alarm_msg){
+    if(g_start_pose.pose.position.x<2.6 && g_start_pose.pose.position.y<1.7)
+        g_lidar_alarm = alarm_msg.data;
+    else
+        g_lidar_alarm = false; //if we are near the tables, ignore lidar alarm
+    if(g_lidar_alarm){
+        ROS_INFO("LIDAR alarm detected");
+    }
 }
 int main(int argc, char **argv){
     ros::init(argc, argv, "navigation_coordinator");
     ros::NodeHandle n;
     ros::Subscriber current_state_subscriber = n.subscribe("/current_state",1,currStateCallback);
-    ros::Subscriber controller_lidar_alarm_subscriber = n.subscribe("/controller_lidar",1,controllerLidarCallback);
+    ros::Subscriber controller_lidar_alarm_subscriber = n.subscribe("/lidar_alarm",1,lidarCallback);
     ros::ServiceClient client = n.serviceClient<des_state_publisher_service::NavSrv>("des_pose_service");
     des_state_publisher_service::NavSrv pose_srv;
 
@@ -92,7 +99,7 @@ int main(int argc, char **argv){
                 }
                ros::spinOnce();
             //ros::spinOnce();
-            if(!g_controller_lidar && !pose_srv.response.alarm && !pose_srv.response.failed){
+            if(!g_lidar_alarm && !pose_srv.response.alarm && !pose_srv.response.failed){
                 // implement a got close enough check
                 i++;
             }
