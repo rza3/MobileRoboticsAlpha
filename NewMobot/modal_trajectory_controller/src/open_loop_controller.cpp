@@ -236,15 +236,17 @@ int main(int argc, char **argv) {
             trajBuilder.set_omega_max(0.5);
             std::vector<nav_msgs::Odometry> vec_of_states;
             nav_msgs::Odometry des_state;
-            geometry_msgs::PoseStamped e_stop_pose;
+            geometry_msgs::PoseStamped lidar_stop_pose;
             lidar_stop_pose = g_start_pose;
-            if(g_pose_mode == 1)
-                lidar_stop_pose.pose.pose.orientation = convertPlanarPsi2Quaternion(convertPlanarQuat2Phi(lidar_stop_pose.pose.pose.orientation) + g_stop_distance_phi);
+            if(g_pose_mode == 1){
+                lidar_stop_pose.pose.orientation = convertPlanarPsi2Quaternion(convertPlanarQuat2Phi(lidar_stop_pose.pose.orientation) + g_stop_distance_phi);
                 trajBuilder.build_spin_traj(g_start_pose, lidar_stop_pose, vec_of_states);
-            else
-                lidar_stop_pose.pose.pose.position.x+= g_stop_distance*cosf(convertPlanarQuat2Phi(lidar_stop_pose.pose.pose.orientation))
-                lidar_stop_pose.pose.pose.position.y+= g_stop_distance*sinf(convertPlanarQuat2Phi(lidar_stop_pose.pose.pose.orientation))
+            }
+            else{
+                lidar_stop_pose.pose.position.x+= g_stop_distance*cosf(convertPlanarQuat2Phi(lidar_stop_pose.pose.orientation));
+                lidar_stop_pose.pose.position.y+= g_stop_distance*sinf(convertPlanarQuat2Phi(lidar_stop_pose.pose.orientation));
                 trajBuilder.build_travel_traj(g_start_pose, lidar_stop_pose, vec_of_states);
+            }
         // Test if this works for backing up.
         //ROS_INFO("publishing desired states ");
         for (int i = 0; i < vec_of_states.size(); i++) {
