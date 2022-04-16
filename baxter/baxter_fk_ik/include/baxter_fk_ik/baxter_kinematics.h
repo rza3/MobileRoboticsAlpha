@@ -158,7 +158,7 @@ const double torso_to_rmount_y = 0.219645;
 const double torso_to_rmount_z = 0.118588;
 //axes of arm-mount frame are rotated about z w/rt torso,
 // R_rmount_axes_wrt_torso = Rotz(theta_z_arm_mount)
-const double theta_z_arm_mount = -M_PI/4;
+const double theta_z_arm_mount = M_PI/4;
 
 //some arbitrary, tunable constants:
 const double r_goal_max = 0.745; // forbid reach > this, from shoulder to wrist; forces bent elbows and avoids singularities
@@ -318,4 +318,3 @@ private:
 };
 
 #endif	/* BAXTER_KIN_H */
-
