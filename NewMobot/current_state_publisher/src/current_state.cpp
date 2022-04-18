@@ -35,6 +35,7 @@ double g_amcl_yaw=0;
 bool g_odom_good=false; //odom
 double g_odom_speed=0;
 nav_msgs::Odometry g_current_odom;
+double g_omega_z_odom=0;
 
 //yaw from ideal gps/gazebo model state
 // double g_true_yaw=0; //actual heading, as reported by gazebo w/o noise;
@@ -76,6 +77,7 @@ void odomCallback(const nav_msgs::Odometry& odom_rcvd) {
     g_current_odom = odom_rcvd;
     g_odom_speed = odom_rcvd.twist.twist.linear.x;
     g_odom_good=true;   
+    g_omega_z_odom = odom_rcvd.twist.twist.angular.z;
 }
 
 //imu callback: 
@@ -93,6 +95,7 @@ int main(int argc, char** argv)
     geometry_msgs::PoseStamped pose_estimate;
     std_msgs::Float64 yaw_msg;
     geometry_msgs::Quaternion quat_est;
+    geometry_msgs::Quaternion yaw_est_quat;
     nav_msgs::Odometry current_state;
     double dx_odom_est=0;
     double dy_odom_est=0;
@@ -144,11 +147,12 @@ int main(int argc, char** argv)
     double yaw_err=0;
     double move_dist = 0;
     //main, timed loop:
-    x_est = x_amcl;
+    x_est = g_current_odom.pose.pose.position.x;
     x_est_old = x_est;
-    y_est =y_amcl;
+    y_est =g_current_odom.pose.pose.position.y;
     y_est_old = y_est;
-    yaw_est = g_amcl_yaw;
+    yaw_est_quat = g_current_odom.pose.pose.orientation;
+    yaw_est = xform_utils.convertPlanarQuat2Phi(yaw_est_quat);
 
     current_state = g_current_odom;
     current_state.header.stamp = ros::Time::now();
@@ -161,7 +165,7 @@ int main(int argc, char** argv)
         yaw_est = (1-K_AMCL)*yaw_est + K_AMCL*g_amcl_yaw;
         dl_odom_est = MAIN_DT*g_odom_speed; //moved this far in 1 DT
         move_dist+= dl_odom_est; //keep track of cumulative move distance
-        //yaw_est+= MAIN_DT*g_omega_z_imu; //integrate the IMU's yaw to estimate heading
+        yaw_est+= MAIN_DT*g_omega_z_odom; //integrate the IMU's yaw to estimate heading
             if (yaw_est<-M_PI) yaw_est+= 2.0*M_PI; //remap periodically
             if (yaw_est>M_PI) yaw_est-= 2.0*M_PI;        
         
