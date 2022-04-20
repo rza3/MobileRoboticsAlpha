@@ -454,13 +454,11 @@ Eigen::Affine3d Baxter_fwd_solver::transform_affine_from_torso_frame_to_arm_moun
     cout<<"input pose w/rt arm-mount frame: R"<<endl;
     cout<<desired_pose_wrt_arm_mount.linear()<<endl;    
     cout<<"origin of des frame w/rt arm-mount frame: "<<desired_pose_wrt_arm_mount.translation().transpose()<<endl;
-
     // now, try easier approach:
     desired_pose_wrt_arm_mount2 = Affine_torso_to_rarm_mount_.inverse()*pose_wrt_torso;
      cout<<"input pose w/rt arm-mount frame, method 2: R"<<endl;
     cout<<desired_pose_wrt_arm_mount2.linear()<<endl;    
     cout<<"origin of des frame w/rt arm-mount frame, method 2: "<<desired_pose_wrt_arm_mount2.translation().transpose()<<endl;   
-
     
     return desired_pose_wrt_arm_mount;
      * */

@@ -24,8 +24,10 @@ int main(int argc, char **argv) {
     Baxter_fwd_solver baxter_fwd_solver;
     Baxter_IK_solver baxter_ik_solver;
 
+    Eigen::Affine3d Aapprox;
+    Vectorq7x1 qsolnapprox;
     b_des<<0,0,-1; //tool flange pointing down
-    n_des<<0,0,1; //x-axis pointing forward...arbitrary
+    n_des<<1,0,0; //x-axis pointing forward...arbitrary
     t_des = b_des.cross(n_des); //consistent right-hand frame
     
     Eigen::Matrix3d R_des;
@@ -45,7 +47,7 @@ int main(int argc, char **argv) {
     double x_max = 1.5;
     double y_min = -1.5;
     double y_max = 1.0;
-    double z_low = 0.0;
+    double z_low = -0.5;
     double z_high = 0.1;
     double dx = 0.05;
     double dy = 0.05;
@@ -63,18 +65,29 @@ int main(int argc, char **argv) {
                 nsolns = baxter_ik_solver.ik_solve_approx_wrt_torso(a_tool_des, q_solns);
                 //valid = baxter_IK_solver_.improve_7dof_soln_wrt_torso(des_flange_affine, q_in, q_7dof_precise);
                 if (nsolns>0) { //test grasp pose:
-                        ROS_INFO("soln at x,y = %f, %f",p_des[0],p_des[1]);
+                        ROS_INFO("soln at x,y,z = %f, %f, %f",p_des[0],p_des[1],p_des[2]);
                         reachable.push_back(p_des);
+                        for(int solutionNumber = 0; solutionNumber<nsolns; solutionNumber++){
+                            qsolnapprox = q_solns.at(solutionNumber);
+                            Aapprox = baxter_fwd_solver.fwd_kin_tool_wrt_torso_solve(qsolnapprox);
+                            cout<<Aapprox.translation().transpose() <<endl;
+                        }
                 }
                 p_des[2] = z_high; // test grasp pose; //z_high; //test approach pose
                 a_tool_des.translation() = p_des;
-
+                
                 nsolns = baxter_ik_solver.ik_solve_approx_wrt_torso(a_tool_des, q_solns);
                 //valid = baxter_IK_solver_.improve_7dof_soln_wrt_torso(des_flange_affine, q_in, q_7dof_precise);
                 if (nsolns>0) { //test grasp pose:
-                        ROS_INFO("soln at x,y = %f, %f",p_des[0],p_des[1]);
+                        ROS_INFO("soln at x,y,z = %f, %f, %f",p_des[0],p_des[1],p_des[2]);
                         approachable.push_back(p_des);
-                }                
+                        for(int solutionNumber = 0; solutionNumber<nsolns; solutionNumber++){
+                            qsolnapprox = q_solns.at(solutionNumber);
+                            Aapprox = baxter_fwd_solver.fwd_kin_tool_wrt_torso_solve(qsolnapprox);
+                            cout<<Aapprox.translation().transpose() <<endl;
+                        }
+                }
+
                 
             }
         }
