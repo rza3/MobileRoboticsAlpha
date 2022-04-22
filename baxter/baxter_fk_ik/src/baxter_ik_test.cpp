@@ -12,6 +12,7 @@
 
 #include <baxter_fk_ik/baxter_kinematics.h> 
 #include <fstream>
+
 using namespace std;
 
 int main(int argc, char **argv) {
@@ -22,7 +23,6 @@ int main(int argc, char **argv) {
     Eigen::Affine3d toolAapprox;
     Eigen::Affine3d result;
     Eigen::Vector3d n_des,t_des,b_des;
-    Eigen::Quaterniond q;
     Eigen::Affine3d A_tool_wrt_flange_;
     Eigen::Affine3d A_tool_wrt_flange_inv_;
     Vectorq6x1 q_in;
@@ -53,51 +53,79 @@ int main(int argc, char **argv) {
     A_tool_wrt_flange_.translation() = O_hand;
     A_tool_wrt_flange_inv_ = A_tool_wrt_flange_.inverse();
 
-    b_des<<0,0,-1; //tool flange pointing down
+    /*b_des<<0,0,-1; //tool flange pointing down
     n_des<<1,0,0; //x-axis pointing forward...arbitrary
     t_des = b_des.cross(n_des); //consistent right-hand frame
     
-    Eigen::Matrix3d R_des;
     R_des.col(0) = n_des;
     R_des.col(1) = t_des;
     R_des.col(2) = b_des;
+    Vectorq7x1 qsoln;    
     std::vector<Vectorq7x1> q_solns;
-    Vectorq7x1 qsolnapprox;
-    Vectorq7x1 qsoln;
-    std::vector<Vectorq7x1> q_solns_approx;
-    Eigen::Affine3d a_tool_des; // expressed in DH frame  
-    Eigen::Affine3d a_tool_des_of_tool;
-    Eigen::Affine3d a_flange_des;
-    a_tool_des.linear() = R_des;
-    //a_tool_des.translation() << x_des,0,0;
-    double w_err_norm; 
-    Eigen::Vector3d p_des;
     Eigen::Vector3d p_des_tool;
     Eigen::Vector3d p_found;
-    int nsolns;
+    */
+   Eigen::Quaterniond q;
+   q.x() = 0.135;
+   q.y() = 0.985;
+   q.z() = -0.109;
+   q.w() = 0.025;
+   Eigen::Matrix3d R_des(q);
+   Vectorq7x1 qsolnapprox;
+   std::vector<Vectorq7x1> q_solns_approx;
+   Eigen::Affine3d a_tool_des; // expressed in DH frame  
+   Eigen::Affine3d a_flange_des;
+   a_tool_des.linear() = R_des;
+   Eigen::Vector3d p_des; //has 0.01 z offset because ik is off by that
+   Eigen::Vector3d p_des_real;
+
+   int nsolns;
     
-   p_des[0] = 0.45;
-   p_des[1] = 0.55;
-   p_des[2] = -0.158; // test grasp pose; //z_high; //test approach pose
+   p_des[0] = 0.411;
+   p_des[1] = 0.555;
+   p_des[2] = 0.183 + 0.01; // test grasp pose; //z_high; //test approach pose
    a_tool_des.translation() = p_des;
+   p_des_real[0] = 0.411;
+   p_des_real[1] = 0.555;
+   p_des_real[2] = 0.183;
+   
    a_flange_des = a_tool_des*A_tool_wrt_flange_inv_; 
+   
    /*
    a_tool_des_of_tool = a_tool_des*A_tool_wrt_flange_;
    a_tool_des = a_tool_des_of_tool*A_tool_wrt_flange_inv_;
    // Am able to convert from flange to tool to flange and get same!
    */
+
    
    nsolns = baxter_ik_solver.ik_solve_approx_wrt_torso(a_flange_des, q_solns_approx);
    cout<<nsolns<<endl;
+   double minVal;
+   int minValIndex;
    for(int solutionNumber = 0; solutionNumber<nsolns; solutionNumber++){
        qsolnapprox = q_solns_approx.at(solutionNumber);
        Aapprox = baxter_fwd_solver.fwd_kin_flange_wrt_torso_solve(qsolnapprox);
        toolAapprox = Aapprox*A_tool_wrt_flange_;
-       cout << (toolAapprox.translation() - p_des).norm()<<endl;   
-       cout<<toolAapprox.translation()<<endl;
-       cout<<p_des<<endl;  
+       if(solutionNumber==0){
+           minVal = (toolAapprox.translation() - p_des).norm();
+           minValIndex = 0;
+       }
+            
+        else{
+            if((toolAapprox.translation() - p_des).norm()<minVal)
+            minVal = (toolAapprox.translation() - p_des).norm();
+            minValIndex = solutionNumber;
+        }
+       //cout<<toolAapprox.translation()<<endl;
+       //cout<<p_des<<endl;  
        
    }
-   
+   cout<<minVal<<endl;
+   qsolnapprox = q_solns_approx.at(minValIndex);
+   Aapprox = baxter_fwd_solver.fwd_kin_flange_wrt_torso_solve(qsolnapprox);
+   toolAapprox = Aapprox*A_tool_wrt_flange_;
+   cout<<(toolAapprox.translation()-p_des).norm()<<endl;
+   cout<<(toolAapprox.translation()-p_des_real).norm()<<endl;
+   cout<<toolAapprox.translation()<<endl;
     return 0;
 }
