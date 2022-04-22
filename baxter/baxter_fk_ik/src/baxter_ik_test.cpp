@@ -112,8 +112,8 @@ int main(int argc, char **argv) {
        }
             
         else{
-            if((toolAapprox.translation() - p_des).norm()<minVal)
-            minVal = (toolAapprox.translation() - p_des).norm();
+            if((toolAapprox.translation() - p_des_real).norm()<minVal)
+            minVal = (toolAapprox.translation() - p_des_real).norm();
             minValIndex = solutionNumber;
         }
        //cout<<toolAapprox.translation()<<endl;
